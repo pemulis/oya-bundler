@@ -22,7 +22,7 @@ async function publishToIPFS(data, signature, from) {
 
   // Add the bundle to IPFS
   const { path } = await ipfs.add(JSON.stringify(data));
-  await redis.set('latestBundleCID', cid);
+  await storeCID(path);
   return path;
 }
 
@@ -36,10 +36,23 @@ async function handleIntention(intention, signature, from) {
   // Send intention to the bundler
 }
 
+// Function to store a new CID with the current timestamp
+async function storeCID(cid) {
+  const timestamp = Date.now(); // Unix timestamp in milliseconds
+  await redis.zadd('cids', timestamp, cid);
+}
+
+// Function to get the latest CID
 async function getLatestBundle() {
-  const ipfsPath = await redis.get('latestBundleCID');
-  if (!ipfsPath) throw new Error("No bundle available");
-  return { ipfsPath };
+  const result = await redis.zrevrange('cids', 0, 0); // Get the highest scored item
+  if (result.length === 0) throw new Error("No bundles available");
+  return { ipfsPath: result[0] };
+}
+
+// Function to get CIDs in a specific timestamp range
+async function getCIDsByTimestamp(start, end) {
+  const result = await redis.zrangebyscore('cids', start, end);
+  return result.map(cid => ({ timestamp: start, ipfsPath: cid }));
 }
 
 module.exports = { handleIntention, getLatestBundle, publishToIPFS };

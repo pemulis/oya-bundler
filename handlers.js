@@ -7,7 +7,6 @@ let redis;
 // Allow testing environment to inject a mock Redis, or use a real one
 function setRedisClient(customClient) {
   redis = customClient;
-  console.log("Set Redis client", redis);
 }
 
 // Variables for Helia instances
@@ -48,7 +47,9 @@ async function publishToIPFS(data, signature, from) {
 
   // Add the data to Helia and get a CID
   const cid = await s.add(data);
-  await storeCID(cid);
+  const timestamp = Date.now(); // Unix timestamp in milliseconds
+  console.log("storeCID call", redis, cid, timestamp);
+  await redis.zadd('cids', timestamp, cid);
   return cid;
 }
 
@@ -60,14 +61,6 @@ async function handleIntention(intention, signature, from) {
   }
 
   // Send intention to the bundler
-}
-
-// Function to store a new CID with the current timestamp
-async function storeCID(cid) {
-  const timestamp = Date.now(); // Unix timestamp in milliseconds
-  console.log("storeCID call", redis, cid, timestamp);
-  await redis.zadd('cids', timestamp, cid);
-  return cid;
 }
 
 // Function to get the latest CID
@@ -86,4 +79,4 @@ async function getCIDsByTimestamp(start, end) {
   return result.map(cid => ({ timestamp: start, ipfsPath: cid }));
 }
 
-module.exports = { handleIntention, getLatestBundle, publishToIPFS, setRedisClient, getCIDsByTimestamp, storeCID };
+module.exports = { handleIntention, getLatestBundle, publishToIPFS, setRedisClient, getCIDsByTimestamp };

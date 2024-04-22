@@ -3,14 +3,28 @@ const ipfsClient = require('ipfs-http-client');
 
 const ipfs = ipfsClient.create({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' });
 
+// Hardcoded address for the bundler
+const BUNDLER_ADDRESS = 'YOUR_BUNDLER_ETH_ADDRESS';
+
 // Mock function to handle Ethereum transactions
 async function executeTransaction(intention, from) {
   // Here you would use ethers.js to interact with Ethereum
   return { txHash: "0x123..." };  // Mock transaction hash
 }
 
-// Mock function to publish data to IPFS
-async function publishToIPFS(data) {
+// Function to publish data to IPFS with signature validation
+async function publishToIPFS(data, signature, from) {
+  if (from !== BUNDLER_ADDRESS) {
+    throw new Error("Unauthorized: Only the bundler can publish new bundles.");
+  }
+
+  // Verify the signature
+  const signerAddress = ethers.utils.verifyMessage(JSON.stringify(data), signature);
+  if (signerAddress !== from) {
+    throw new Error("Signature verification failed");
+  }
+
+  // Add the bundle to IPFS
   const { path } = await ipfs.add(JSON.stringify(data));
   return path;
 }

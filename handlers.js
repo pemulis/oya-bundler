@@ -1,9 +1,35 @@
 const ethers = require('ethers');
-const ipfsClient = require('ipfs-http-client');
 const Redis = require('ioredis');
 
-const redis = new Redis(); // Default connects to 127.0.0.1:6379
-const ipfs = ipfsClient.create({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' });
+// Lazy-load redis client
+let redis;
+
+// Allow testing environment to inject a mock Redis, or use a real one
+function setRedisClient(customClient) {
+  redis = customClient;
+  console.log("Set Redis client", redis);
+}
+
+// Variables for Helia instances
+let createHelia, strings, s;
+
+// Dynamically import Helia and related modules
+async function setupHelia() {
+  const heliaModule = await import('helia');
+  createHelia = heliaModule.createHelia;
+  const stringsModule = await import('@helia/strings');
+  strings = stringsModule.strings;
+  
+  const helia = await createHelia(); // Create a Helia node
+  s = strings(helia); // Initialize strings with the Helia node
+}
+
+// Initialize the Helia setup at the start of your application
+setupHelia().then(() => {
+  console.log('Helia is set up and ready.');
+}).catch(err => {
+  console.error('Failed to set up Helia:', err);
+});
 
 // Hardcoded address for the bundler
 const BUNDLER_ADDRESS = 'YOUR_BUNDLER_ETH_ADDRESS';
@@ -20,10 +46,10 @@ async function publishToIPFS(data, signature, from) {
     throw new Error("Signature verification failed");
   }
 
-  // Add the bundle to IPFS
-  const { path } = await ipfs.add(JSON.stringify(data));
-  await storeCID(path);
-  return path;
+  // Add the data to Helia and get a CID
+  const cid = await s.add(data);
+  await storeCID(cid);
+  return cid;
 }
 
 async function handleIntention(intention, signature, from) {
@@ -39,20 +65,25 @@ async function handleIntention(intention, signature, from) {
 // Function to store a new CID with the current timestamp
 async function storeCID(cid) {
   const timestamp = Date.now(); // Unix timestamp in milliseconds
+  console.log("storeCID call", redis, cid, timestamp);
   await redis.zadd('cids', timestamp, cid);
+  return cid;
 }
 
 // Function to get the latest CID
 async function getLatestBundle() {
-  const result = await redis.zrevrange('cids', 0, 0); // Get the highest scored item
-  if (result.length === 0) throw new Error("No bundles available");
+  const result = await redis.zrevrange('cids', 0, 0);
+  console.log("getLatestBundle call", redis, result);
+  if (!result || result.length === 0) throw new Error("No bundles available");
   return { ipfsPath: result[0] };
 }
 
 // Function to get CIDs in a specific timestamp range
 async function getCIDsByTimestamp(start, end) {
   const result = await redis.zrangebyscore('cids', start, end);
+  console.log("getCIDsByTimestamp call", redis, result);
+  if (!result || result.length === 0) throw new Error("No data found");
   return result.map(cid => ({ timestamp: start, ipfsPath: cid }));
 }
 
-module.exports = { handleIntention, getLatestBundle, publishToIPFS };
+module.exports = { handleIntention, getLatestBundle, publishToIPFS, setRedisClient, getCIDsByTimestamp, storeCID };

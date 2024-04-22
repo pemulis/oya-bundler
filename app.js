@@ -31,6 +31,17 @@ app.get('/bundle', async (req, res) => {
   }
 });
 
+// Route to publish bundle
+app.get('/publish', async (req, res) => {
+  try {
+    const { data, signature, from } = req.body;
+    const response = await publishToIPFS(data, signature, from);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

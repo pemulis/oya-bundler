@@ -1,6 +1,8 @@
 const ethers = require('ethers');
 const ipfsClient = require('ipfs-http-client');
+const Redis = require('ioredis');
 
+const redis = new Redis(); // Default connects to 127.0.0.1:6379
 const ipfs = ipfsClient.create({ host: 'ipfs.infura.io', port: 5001, protocol: 'https' });
 
 // Hardcoded address for the bundler
@@ -20,6 +22,7 @@ async function publishToIPFS(data, signature, from) {
 
   // Add the bundle to IPFS
   const { path } = await ipfs.add(JSON.stringify(data));
+  await redis.set('latestBundleCID', cid);
   return path;
 }
 
@@ -34,9 +37,9 @@ async function handleIntention(intention, signature, from) {
 }
 
 async function getLatestBundle() {
-  // Logic to retrieve the latest bundle from IPFS
-  // This could involve querying a database or cache where you track the latest CID
-  return { ipfsPath: "Qm..." };  // Mock IPFS CID
+  const ipfsPath = await redis.get('latestBundleCID');
+  if (!ipfsPath) throw new Error("No bundle available");
+  return { ipfsPath };
 }
 
 module.exports = { handleIntention, getLatestBundle, publishToIPFS };

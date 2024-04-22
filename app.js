@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { handleIntention, getLatestBundle } = require('./handlers');
+const { handleIntention, getLatestBundle, publishToIPFS } = require('./handlers');
 
 // Load environment variables
 require('dotenv').config();

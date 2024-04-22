@@ -6,12 +6,6 @@ const ipfs = ipfsClient.create({ host: 'ipfs.infura.io', port: 5001, protocol: '
 // Hardcoded address for the bundler
 const BUNDLER_ADDRESS = 'YOUR_BUNDLER_ETH_ADDRESS';
 
-// Mock function to handle Ethereum transactions
-async function executeTransaction(intention, from) {
-  // Here you would use ethers.js to interact with Ethereum
-  return { txHash: "0x123..." };  // Mock transaction hash
-}
-
 // Function to publish data to IPFS with signature validation
 async function publishToIPFS(data, signature, from) {
   if (from !== BUNDLER_ADDRESS) {
@@ -36,16 +30,7 @@ async function handleIntention(intention, signature, from) {
     throw new Error("Signature verification failed");
   }
 
-  const txResult = await executeTransaction(intention, from);
-  const bundle = {
-    intention,
-    executionProof: txResult.txHash,
-    signedBy: from,
-    timestamp: new Date().toISOString()
-  };
-  const ipfsPath = await publishToIPFS(bundle);
-
-  return { message: "Intention processed", ipfsPath };
+  // Send intention to the bundler
 }
 
 async function getLatestBundle() {
@@ -54,4 +39,4 @@ async function getLatestBundle() {
   return { ipfsPath: "Qm..." };  // Mock IPFS CID
 }
 
-module.exports = { handleIntention, getLatestBundle };
+module.exports = { handleIntention, getLatestBundle, publishToIPFS };

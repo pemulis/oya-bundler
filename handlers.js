@@ -31,7 +31,7 @@ setupHelia().then(() => {
 });
 
 // Hardcoded address for the bundler
-const BUNDLER_ADDRESS = 'YOUR_BUNDLER_ETH_ADDRESS';
+const BUNDLER_ADDRESS = '0xbundler'; // for testing
 
 // Function to publish data to IPFS with signature validation
 async function publishToIPFS(data, signature, from) {
@@ -40,7 +40,7 @@ async function publishToIPFS(data, signature, from) {
   }
 
   // Verify the signature
-  const signerAddress = ethers.utils.verifyMessage(JSON.stringify(data), signature);
+  const signerAddress = ethers.verifyMessage(JSON.stringify(data), signature);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }
@@ -55,7 +55,7 @@ async function publishToIPFS(data, signature, from) {
 
 async function handleIntention(intention, signature, from) {
   // Verify signature (mock logic)
-  const signerAddress = ethers.utils.verifyMessage(intention, signature);
+  const signerAddress = ethers.verifyMessage(intention, signature);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }

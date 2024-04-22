@@ -4,46 +4,45 @@ const sinon = require('sinon');
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-const { publishToIPFS, getLatestBundle, getCIDsByTimestamp, setRedisClient } = require('../handlers');
-const ethers = require('ethers');
+const { publishToIPFS, setRedisClient } = require('../handlers');
+const { ethers, Wallet }= require('ethers');
 
 const RedisMock = require('redis-mock');
 const redisMock = RedisMock.createClient();
 
-describe('publishToIPFS', function() {
-  const bundlerAddress = '0xbundler';
-  const fakeData = { content: "Hello, IPFS!" };
-  const fakeSignature = "0xsignature";
-  const fakeCID = "QmTestCid";
+describe('publishToIPFS', async function() {
+  const bundlerAddress = '0xbundler';  // Define bundler address for all tests
+  const fakeData = { content: "Hello, IPFS!" };  // Sample data to use in tests
+  const fakeSignature = await Wallet.createRandom().signMessage(JSON.stringify(fakeData));
+  const fakeCID = "QmTestCid";  // Define a fake CID for the tests
 
   // Stub for Helia's add method
   let heliaAddStub;
 
   before(() => {
-    setRedisClient(redisMock);
-    global.BUNDLER_ADDRESS = bundlerAddress; // Set the global BUNDLER_ADDRESS
-    heliaAddStub = sinon.stub().resolves(fakeCID);
-    global.s = { add: heliaAddStub }; // Stub s.add
+    setRedisClient(redisMock);  // Set the mock Redis client
+    heliaAddStub = sinon.stub().resolves(fakeCID);  // Stub the add method to resolve with fakeCID
+    global.s = { add: heliaAddStub };  // Assign the stub to global.s.add
   });
 
   beforeEach(async () => {
-    await redisMock.flushall();
+    await redisMock.flushall();  // Flush the Redis mock before each test
   });
 
   it('should throw an error if the caller is not the bundler', async () => {
-    const unauthorizedFrom = '0xnotBundler';
+    const unauthorizedFrom = '0xnotBundler';  // Define an unauthorized address
     await expect(publishToIPFS(fakeData, fakeSignature, unauthorizedFrom))
       .to.be.rejectedWith("Unauthorized: Only the bundler can publish new bundles.");
   });
 
   it('should throw an error if the signature verification fails', async () => {
-    sinon.stub(ethers.utils, 'verifyMessage').returns('0xwrongAddress');
+    sinon.stub(ethers, 'verifyMessage').returns('0xwrongAddress');
     await expect(publishToIPFS(fakeData, fakeSignature, bundlerAddress))
       .to.be.rejectedWith("Signature verification failed");
   });
 
   it('should publish data to IPFS and store the CID if authorized and the signature is valid', async () => {
-    sinon.stub(ethers.utils, 'verifyMessage').returns(bundlerAddress);
+    sinon.stub(ethers, 'verifyMessage').returns(bundlerAddress);
     const cid = await publishToIPFS(fakeData, fakeSignature, bundlerAddress);
     expect(cid).to.equal(fakeCID);
 
@@ -52,6 +51,6 @@ describe('publishToIPFS', function() {
   });
 
   afterEach(() => {
-    sinon.restore();
+    sinon.restore();  // Restore all stubs, mocks, and spies
   });
 });

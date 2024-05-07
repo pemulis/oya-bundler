@@ -7,8 +7,20 @@ chai.use(chaiAsPromised);
 const { publishToIPFS, setRedisClient } = require('../handlers');
 const { ethers, Wallet } = require('ethers');
 
-const RedisMock = require('redis-mock');
-const redisMock = RedisMock.createClient();
+/*
+ * You'll need to have Redis running locally for testing
+ * Run the following commands on Mac to start a Redis server:
+ * 
+ * brew install redis (if not installed already)
+ * redis-server
+ * 
+ */
+
+const Redis = require('ioredis');
+const redis = new Redis({
+  host: 'localhost',  // Redis server address
+  port: 6379         // Redis server port
+});
 
 describe('publishToIPFS', function() {
   let validSignature, invalidSignature;
@@ -18,7 +30,7 @@ describe('publishToIPFS', function() {
   const validCID = "bafkreiciu52bu6glz3izmbsmb2mxfgsnwsezopw2qmupsh5zzp545rrwiq";
 
   before(async () => {
-    setRedisClient(redisMock);
+    setRedisClient(redis);
     const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
     const wrongPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
     validSignature = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(validData));
@@ -29,7 +41,7 @@ describe('publishToIPFS', function() {
   });
 
   beforeEach(async () => {
-    await redisMock.flushall();
+    await redis.flushall();
   });
 
   it('should throw an error if the caller is not the bundler', async () => {
@@ -57,9 +69,9 @@ describe('publishToIPFS', function() {
     console.log("CID: ", cid.toString());
     expect(cid.toString()).to.equal(validCID);
 
-    // const result = await redisMock.zrange('cids', 0, -1);
-    // console.log("Result: ", result);
-    // expect(result).to.include(cid.toString());
+    const result = await redis.zrange('cids', 0, -1);
+    console.log("Result: ", result);
+    expect(result).to.include(cid.toString());
   });
 
   afterEach(() => {

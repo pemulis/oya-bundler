@@ -1,5 +1,4 @@
 const ethers = require('ethers');
-const Redis = require('ioredis');
 
 // Lazy-load redis client
 let redis;
@@ -7,6 +6,7 @@ let redis;
 // Allow testing environment to inject a mock Redis, or use a real one
 function setRedisClient(customClient) {
   redis = customClient;
+  console.log("Redis client set:", redis);
 }
 
 // Variables for Helia instances
@@ -51,8 +51,12 @@ async function publishToIPFS(data, signature, from) {
   const cid = await s.add(data);  // Ensure this is defined and accessible
   console.log(`Data added, CID: ${cid}`);
   const timestamp = Date.now();
-  const zaddResult = await redis.zadd('cids', timestamp, cid.toString());
-  console.log("zaddResult", zaddResult);
+  try {
+    const zaddResult = await redis.zadd('cids', timestamp, cid.toString());
+    console.log("zaddResult:", zaddResult);
+  } catch (error) {
+    console.error("Failed to add CID to Redis:", error);
+  }
   return cid;
 }
 

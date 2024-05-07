@@ -51,10 +51,10 @@ async function publishToIPFS(data, signature, from) {
   const cid = await s.add(data);  // Ensure this is defined and accessible
   console.log(`Data added, CID: ${cid}`);
   const timestamp = Date.now();
-  await redis.zadd('cids', timestamp, cid);
+  const zaddResult = await redis.zadd('cids', timestamp, cid.toString());
+  console.log("zaddResult", zaddResult);
   return cid;
 }
-
 
 async function handleIntention(intention, signature, from) {
   // Verify signature (mock logic)

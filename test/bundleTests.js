@@ -31,6 +31,7 @@ describe('publishToIPFS', async function() {
 
   beforeEach(async () => {
     await redisMock.flushall();  // Flush the Redis mock before each test
+    console.log("Redis flushed");
   });
 
   it('should throw an error if the caller is not the bundler', async () => {

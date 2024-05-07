@@ -14,8 +14,8 @@ describe('publishToIPFS', function() {
   let validSignature, invalidSignature;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
   const wrongAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
-  const validData = { content: "Hello, IPFS!" };
-  const validCID = "QmTestCid";
+  const validData = '{ content: "Hello, IPFS!" }';
+  const validCID = "bafkreiciu52bu6glz3izmbsmb2mxfgsnwsezopw2qmupsh5zzp545rrwiq";
 
   before(async () => {
     setRedisClient(redisMock);
@@ -54,7 +54,8 @@ describe('publishToIPFS', function() {
   it('should publish data to IPFS and store the CID if authorized and the signature is valid', async () => {
     sinon.stub(ethers, 'verifyMessage').returns(bundlerAddress);
     const cid = await publishToIPFS(validData, validSignature, bundlerAddress);
-    expect(cid).to.equal(validCID);
+    console.log("CID: ", cid.toString());
+    expect(cid.toString()).to.equal(validCID);
 
     const result = await redisMock.zrange('cids', 0, -1);
     expect(result).to.include(cid);

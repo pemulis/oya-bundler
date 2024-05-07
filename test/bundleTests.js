@@ -26,8 +26,8 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   let validSignature, invalidSignature;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
   const wrongAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
-  const validData = '{ content: "Hello, IPFS!" }';
-  const validCID = "bafkreiciu52bu6glz3izmbsmb2mxfgsnwsezopw2qmupsh5zzp545rrwiq";
+  const validData = '{[{"Transfer 1 ETH to alice.eth", bob.eth, 0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf, 2346265198, 1}], [{proof goes here}], 1715113198, 42}';
+  const validCID = "bafkreid6ueroyvqz4bq5svdxqw4kbedyt33srwqrep6eufagrhpi2o272q";
 
   before(async () => {
     setRedisClient(redis);

@@ -42,7 +42,7 @@ async function publishToIPFS(data, signature, from) {
 
   console.log("Verifying signature");
   const signerAddress = ethers.verifyMessage(JSON.stringify(data), signature);
-  console.log(`Signer Address: ${signerAddress}, Expected: ${from}`);
+  console.log(`Signer Address: ${signerAddress}, From Address: ${from}`);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }

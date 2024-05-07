@@ -8,12 +8,12 @@ const { publishToIPFS, setRedisClient } = require('../handlers');
 const { ethers, Wallet } = require('ethers');
 
 /*
- * You'll need to have Redis running locally for testing
- * Run the following commands on Mac to start a Redis server:
+ * You'll need to have Redis installed locally for testing
+
+ * Run the following command to install Redis, on a Mac, if you haven't already:
+ * brew install redis
  * 
- * brew install redis (if not installed already)
- * redis-server
- * 
+ * The `npm test` script will automatically start the Redis server for you
  */
 
 const Redis = require('ioredis');

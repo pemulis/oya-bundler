@@ -22,7 +22,7 @@ const redis = new Redis({
 });
 
 // Let's run some tests!
-describe('publishToIPFS', function() {
+describe('Publish to IPFS and retrieve data from Redis', function() {
   let validSignature, invalidSignature;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
   const wrongAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
@@ -64,12 +64,47 @@ describe('publishToIPFS', function() {
 
   it('should publish data to IPFS and return the CID if authorized and the signature is valid', async () => {
     const cid = await publishToIPFS(validData, validSignature, bundlerAddress);
-    console.log("CID: ", cid.toString());
     expect(cid.toString()).to.equal(validCID);
 
     const result = await redis.zrange('cids', 0, -1);
-    console.log("Result: ", result);
     expect(result).to.include(cid.toString());
+  });
+
+  it('should return the latest CID if available', async () => {
+    const timestamp = Date.now();
+    await redis.zadd('cids', timestamp, validCID); // Prepopulate Redis with a known CID
+    const bundle = await getLatestBundle();
+    expect(bundle).to.deep.equal({ ipfsPath: validCID });
+  });
+
+  it('should throw an error if no CIDs are available in getLatestBundle', async () => {
+    await expect(getLatestBundle()).to.be.rejectedWith("No bundles available");
+  });
+
+  it('should return CIDs within the specified timestamp range', async () => {
+    const startTimestamp = Date.now();
+    await redis.zadd('cids', startTimestamp, 'cid123');
+    const endTimestamp = startTimestamp + 1000; // Explicitly set 1 second later
+    await redis.zadd('cids', endTimestamp, 'cid124');
+  
+    const cids = await getCIDsByTimestamp(startTimestamp, endTimestamp + 100);
+  
+    const expectedCIDs = [
+      { timestamp: startTimestamp, ipfsPath: 'cid123' },
+      { timestamp: endTimestamp, ipfsPath: 'cid124' }
+    ];
+  
+    expect(cids.length).to.equal(expectedCIDs.length);
+    expectedCIDs.forEach(expectedCID => {
+      const match = cids.find(cid => cid.ipfsPath === expectedCID.ipfsPath && cid.timestamp === expectedCID.timestamp);
+      expect(match).to.not.be.undefined;
+    });
+  });
+
+  it('should throw an error if no CIDs are found in the specified timestamp range', async () => {
+    const startTimestamp = Date.now();
+    const endTimestamp = startTimestamp + 1000; // 1 second later
+    await expect(getCIDsByTimestamp(startTimestamp, endTimestamp)).to.be.rejectedWith("No data found");
   });
 
   afterEach(() => {

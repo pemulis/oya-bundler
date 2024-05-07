@@ -6,7 +6,6 @@ let redis;
 // Allow testing environment to inject a mock Redis, or use a real one
 function setRedisClient(customClient) {
   redis = customClient;
-  console.log("Redis client set:", redis);
 }
 
 // Variables for Helia instances
@@ -35,25 +34,19 @@ const BUNDLER_ADDRESS = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf'; // for tes
 // Function to publish data to IPFS with signature validation
 async function publishToIPFS(data, signature, from) {
   await ensureHeliaSetup();  // Ensure Helia is ready before proceeding
-  console.log("Checking caller's address");
   if (from !== BUNDLER_ADDRESS) {
     throw new Error("Unauthorized: Only the bundler can publish new bundles.");
   }
 
-  console.log("Verifying signature");
   const signerAddress = ethers.verifyMessage(JSON.stringify(data), signature);
-  console.log(`Signer Address: ${signerAddress}, From Address: ${from}`);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }
 
-  console.log("Adding data to IPFS");
   const cid = await s.add(data);  // Ensure this is defined and accessible
-  console.log(`Data added, CID: ${cid}`);
   const timestamp = Date.now();
   try {
-    const zaddResult = await redis.zadd('cids', timestamp, cid.toString());
-    console.log("zaddResult:", zaddResult);
+    await redis.zadd('cids', timestamp, cid.toString());
   } catch (error) {
     console.error("Failed to add CID to Redis:", error);
   }
@@ -73,17 +66,27 @@ async function handleIntention(intention, signature, from) {
 // Function to get the latest CID
 async function getLatestBundle() {
   const result = await redis.zrevrange('cids', 0, 0);
-  console.log("getLatestBundle call", redis, result);
   if (!result || result.length === 0) throw new Error("No bundles available");
   return { ipfsPath: result[0] };
 }
 
 // Function to get CIDs in a specific timestamp range
 async function getCIDsByTimestamp(start, end) {
-  const result = await redis.zrangebyscore('cids', start, end);
-  console.log("getCIDsByTimestamp call", redis, result);
+  // Retrieve both the CIDs and their scores
+  const result = await redis.zrangebyscore('cids', start, end, 'WITHSCORES');
   if (!result || result.length === 0) throw new Error("No data found");
-  return result.map(cid => ({ timestamp: start, ipfsPath: cid }));
+
+  // Since the result array includes both the member and the score interleaved,
+  // we need to process them in pairs.
+  const cidsWithTimestamps = [];
+  for (let i = 0; i < result.length; i += 2) {
+    const cid = result[i];
+    const timestamp = parseInt(result[i + 1], 10);
+    cidsWithTimestamps.push({ timestamp, ipfsPath: cid });
+  }
+
+  return cidsWithTimestamps;
 }
+
 
 module.exports = { handleIntention, getLatestBundle, publishToIPFS, setRedisClient, getCIDsByTimestamp };

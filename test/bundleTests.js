@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-const { publishToIPFS, setRedisClient } = require('../handlers');
+const { publishToIPFS, setRedisClient, getLatestBundle, getCIDsByTimestamp } = require('../handlers');
 const { ethers, Wallet } = require('ethers');
 
 /*
@@ -15,13 +15,13 @@ const { ethers, Wallet } = require('ethers');
  * 
  * The `npm test` script will automatically start the Redis server for you
  */
-
 const Redis = require('ioredis');
 const redis = new Redis({
   host: 'localhost',  // Redis server address
   port: 6379         // Redis server port
 });
 
+// Let's run some tests!
 describe('publishToIPFS', function() {
   let validSignature, invalidSignature;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
@@ -51,7 +51,6 @@ describe('publishToIPFS', function() {
   });
 
   it('should throw an error if the signature verification fails', async () => {
-    // const verifyStub = sinon.stub(ethers, 'verifyMessage').returns('0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E');
     try {
       await expect(publishToIPFS(validData, invalidSignature, bundlerAddress))
         .to.be.rejectedWith("Signature verification failed");
@@ -64,7 +63,6 @@ describe('publishToIPFS', function() {
   });  
 
   it('should publish data to IPFS and return the CID if authorized and the signature is valid', async () => {
-    sinon.stub(ethers, 'verifyMessage').returns(bundlerAddress);
     const cid = await publishToIPFS(validData, validSignature, bundlerAddress);
     console.log("CID: ", cid.toString());
     expect(cid.toString()).to.equal(validCID);

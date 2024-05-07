@@ -35,23 +35,26 @@ const BUNDLER_ADDRESS = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf'; // for tes
 
 // Function to publish data to IPFS with signature validation
 async function publishToIPFS(data, signature, from) {
+  console.log("Checking caller's address");
   if (from !== BUNDLER_ADDRESS) {
     throw new Error("Unauthorized: Only the bundler can publish new bundles.");
   }
 
-  // Verify the signature
+  console.log("Verifying signature");
   const signerAddress = ethers.verifyMessage(JSON.stringify(data), signature);
+  console.log(`Signer Address: ${signerAddress}, Expected: ${from}`);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }
 
-  // Add the data to Helia and get a CID
-  const cid = await s.add(data);
-  const timestamp = Date.now(); // Unix timestamp in milliseconds
-  console.log("storeCID call", redis, cid, timestamp);
+  console.log("Adding data to IPFS");
+  const cid = await s.add(data);  // Ensure this is defined and accessible
+  console.log(`Data added, CID: ${cid}`);
+  const timestamp = Date.now();
   await redis.zadd('cids', timestamp, cid);
   return cid;
 }
+
 
 async function handleIntention(intention, signature, from) {
   // Verify signature (mock logic)

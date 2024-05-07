@@ -23,18 +23,18 @@ async function setupHelia() {
   s = strings(helia); // Initialize strings with the Helia node
 }
 
-// Initialize the Helia setup at the start of your application
-setupHelia().then(() => {
-  console.log('Helia is set up and ready.');
-}).catch(err => {
-  console.error('Failed to set up Helia:', err);
-});
+async function ensureHeliaSetup() {
+  if (!s) {
+    await setupHelia();
+  }
+}
 
 // Hardcoded address for the bundler
 const BUNDLER_ADDRESS = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf'; // for testing, insecure
 
 // Function to publish data to IPFS with signature validation
 async function publishToIPFS(data, signature, from) {
+  await ensureHeliaSetup();  // Ensure Helia is ready before proceeding
   console.log("Checking caller's address");
   if (from !== BUNDLER_ADDRESS) {
     throw new Error("Unauthorized: Only the bundler can publish new bundles.");

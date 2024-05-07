@@ -11,9 +11,10 @@ const RedisMock = require('redis-mock');
 const redisMock = RedisMock.createClient();
 
 describe('publishToIPFS', async function() {
-  const bundlerAddress = '0xbundler';  // Define bundler address for all tests
+  const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';  // Define bundler address for all tests
+  const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing, obviously insecure
   const fakeData = { content: "Hello, IPFS!" };  // Sample data to use in tests
-  const fakeSignature = await Wallet.createRandom().signMessage(JSON.stringify(fakeData));
+  const fakeSignature = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(fakeData));
   const fakeCID = "QmTestCid";  // Define a fake CID for the tests
 
   // Stub for Helia's add method

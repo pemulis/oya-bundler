@@ -31,7 +31,7 @@ setupHelia().then(() => {
 });
 
 // Hardcoded address for the bundler
-const BUNDLER_ADDRESS = '0xbundler'; // for testing
+const BUNDLER_ADDRESS = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf'; // for testing, insecure
 
 // Function to publish data to IPFS with signature validation
 async function publishToIPFS(data, signature, from) {

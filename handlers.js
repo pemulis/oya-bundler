@@ -53,16 +53,6 @@ async function publishToIPFS(data, signature, from) {
   return cid;
 }
 
-async function handleIntention(intention, signature, from) {
-  // Verify signature (mock logic)
-  const signerAddress = ethers.verifyMessage(intention, signature);
-  if (signerAddress !== from) {
-    throw new Error("Signature verification failed");
-  }
-
-  // Send intention to the bundler
-}
-
 // Function to get the latest CID
 async function getLatestBundle() {
   const result = await redis.zrevrange('cids', 0, 0);
@@ -86,6 +76,16 @@ async function getCIDsByTimestamp(start, end) {
   }
 
   return cidsWithTimestamps;
+}
+
+async function handleIntention(intention, signature, from) {
+  // Verify signature (mock logic)
+  const signerAddress = ethers.verifyMessage(intention, signature);
+  if (signerAddress !== from) {
+    throw new Error("Signature verification failed");
+  }
+
+  // Send intention to the bundler
 }
 
 

@@ -32,7 +32,7 @@ async function ensureHeliaSetup() {
 const BUNDLER_ADDRESS = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf'; // for testing, insecure
 
 // Function to publish data to IPFS with signature validation
-async function publishToIPFS(data, signature, from) {
+async function publishBundle(data, signature, from) {
   await ensureHeliaSetup();  // Ensure Helia is ready before proceeding
   if (from !== BUNDLER_ADDRESS) {
     throw new Error("Unauthorized: Only the bundler can publish new bundles.");
@@ -85,8 +85,14 @@ async function handleIntention(intention, signature, from) {
     throw new Error("Signature verification failed");
   }
 
-  // Send intention to the bundler
+  // Use Brian to translate intention to transaction details
+
+  // Alert the bundler with intention and transaction details
+
+  // Store in a cache, to add to a bundle after some time period?
+
+  // New function to create a bundle with cached intentions, and then call publish?
 }
 
 
-module.exports = { handleIntention, getLatestBundle, publishToIPFS, setRedisClient, getCIDsByTimestamp };
+module.exports = { handleIntention, getLatestBundle, publishBundle, setRedisClient, getCIDsByTimestamp };

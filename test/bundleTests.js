@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-const { publishToIPFS, setRedisClient, getLatestBundle, getCIDsByTimestamp } = require('../handlers');
+const { publishBundle, setRedisClient, getLatestBundle, getCIDsByTimestamp } = require('../handlers');
 const { ethers, Wallet } = require('ethers');
 
 /*
@@ -46,13 +46,13 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
 
   it('should throw an error if the caller is not the bundler', async () => {
     const unauthorizedFrom = wrongAddress;
-    await expect(publishToIPFS(validData, validSignature, unauthorizedFrom))
+    await expect(publishBundle(validData, validSignature, unauthorizedFrom))
       .to.be.rejectedWith("Unauthorized: Only the bundler can publish new bundles.");
   });
 
   it('should throw an error if the signature verification fails', async () => {
     try {
-      await expect(publishToIPFS(validData, invalidSignature, bundlerAddress))
+      await expect(publishBundle(validData, invalidSignature, bundlerAddress))
         .to.be.rejectedWith("Signature verification failed");
     } catch (error) {
       console.error("Error caught in test: ", error);
@@ -63,7 +63,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   });  
 
   it('should publish data to IPFS and return the CID if authorized and the signature is valid', async () => {
-    const cid = await publishToIPFS(validData, validSignature, bundlerAddress);
+    const cid = await publishBundle(validData, validSignature, bundlerAddress);
     expect(cid.toString()).to.equal(validCID);
 
     const result = await redis.zrange('cids', 0, -1);

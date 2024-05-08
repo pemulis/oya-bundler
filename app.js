@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { handleIntention, getLatestBundle, publishToIPFS } = require('./handlers');
+const { handleIntention, getLatestBundle, publishBundle } = require('./handlers');
 
 // Load environment variables
 require('dotenv').config();
@@ -35,7 +35,7 @@ app.get('/bundle', async (req, res) => {
 app.get('/publish', async (req, res) => {
   try {
     const { data, signature, from } = req.body;
-    const response = await publishToIPFS(data, signature, from);
+    const response = await publishBundle(data, signature, from);
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -23,18 +23,18 @@ const redis = new Redis({
 
 // Let's run some tests!
 describe('Publish to IPFS and retrieve data from Redis', function() {
-  let validSignature, invalidSignature;
+  let bundlerSignatureOnBundle, accountHolderSignatureOnBundle;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
-  const wrongAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
+  const accountHolderAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
   const validData = '{[{"Transfer 1 ETH to alice.eth", bob.eth, 0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf, 2346265198, 1}], [{proof goes here}], 1715113198, 42}';
   const validCID = "bafkreicoq2mk6aiqswiery35smtio7vxw65x4r2g3wjprlojbmuo652uv4";
 
   before(async () => {
     setRedisClient(redis);
     const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
-    const wrongPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
-    validSignature = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(validData));
-    invalidSignature = await new Wallet(wrongPrivateKey).signMessage(JSON.stringify(validData));
+    const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
+    bundlerSignatureOnBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(validData));
+    accountHolderSignatureOnBundle = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(validData));
 
     let heliaAddStub = sinon.stub().resolves(validCID);
     global.s = { add: heliaAddStub };
@@ -45,14 +45,14 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   });
 
   it('should throw an error if the caller is not the bundler', async () => {
-    const unauthorizedFrom = wrongAddress;
-    await expect(publishBundle(validData, validSignature, unauthorizedFrom))
+    const unauthorizedFrom = accountHolderAddress;
+    await expect(publishBundle(validData, bundlerSignatureOnBundle, unauthorizedFrom))
       .to.be.rejectedWith("Unauthorized: Only the bundler can publish new bundles.");
   });
 
   it('should throw an error if the signature verification fails', async () => {
     try {
-      await expect(publishBundle(validData, invalidSignature, bundlerAddress))
+      await expect(publishBundle(validData, accountHolderSignatureOnBundle, bundlerAddress))
         .to.be.rejectedWith("Signature verification failed");
     } catch (error) {
       console.error("Error caught in test: ", error);
@@ -63,7 +63,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   });  
 
   it('should publish data to IPFS and return the CID if authorized and the signature is valid', async () => {
-    const cid = await publishBundle(validData, validSignature, bundlerAddress);
+    const cid = await publishBundle(validData, bundlerSignatureOnBundle, bundlerAddress);
     expect(cid.toString()).to.equal(validCID);
 
     const result = await redis.zrange('cids', 0, -1);

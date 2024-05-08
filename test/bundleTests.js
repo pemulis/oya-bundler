@@ -33,9 +33,10 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     expiry: 2346265198,
     nonce: 1
   });
+  const proof = "proof goes here";
   const bundleData = JSON.stringify({
     intentions: [intention],
-    proofs: ["proof goes here"],
+    proofs: [proof],
     timestamp: 1715113198,
     nonce: 42
   });

@@ -39,7 +39,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     timestamp: 1715113198,
     nonce: 42
   });
-  const validCID = "bafkreie6pqcanaeef2yzgpiluaqiuzeyhwf2x62q3v7k55tlq7smbkumrq";
+  const bundleCID = "bafkreie6pqcanaeef2yzgpiluaqiuzeyhwf2x62q3v7k55tlq7smbkumrq";
 
   before(async () => {
     setRedisClient(redis);
@@ -48,7 +48,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     bundlerSignatureOnBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(bundleData));
     accountHolderSignatureOnBundle = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(bundleData));
 
-    let heliaAddStub = sinon.stub().resolves(validCID);
+    let heliaAddStub = sinon.stub().resolves(bundleCID);
     global.s = { add: heliaAddStub };
   });
 
@@ -76,7 +76,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
 
   it('should publish data to IPFS and return the CID if authorized and the signature is valid', async () => {
     const cid = await publishBundle(bundleData, bundlerSignatureOnBundle, bundlerAddress);
-    expect(cid.toString()).to.equal(validCID);
+    expect(cid.toString()).to.equal(bundleCID);
 
     const result = await redis.zrange('cids', 0, -1);
     expect(result).to.include(cid.toString());
@@ -84,9 +84,9 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
 
   it('should return the latest CID if available', async () => {
     const timestamp = Date.now();
-    await redis.zadd('cids', timestamp, validCID); // Prepopulate Redis with a known CID
+    await redis.zadd('cids', timestamp, bundleCID); // Prepopulate Redis with a known CID
     const bundle = await getLatestBundle();
-    expect(bundle).to.deep.equal({ ipfsPath: validCID });
+    expect(bundle).to.deep.equal({ ipfsPath: bundleCID });
   });
 
   it('should throw an error if no CIDs are available in getLatestBundle', async () => {

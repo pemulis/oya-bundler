@@ -26,8 +26,20 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   let bundlerSignatureOnBundle, accountHolderSignatureOnBundle;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
   const accountHolderAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
-  const bundleData = '{[{"Transfer 1 ETH to alice.eth", bob.eth, 0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf, 2346265198, 1}], [{proof goes here}], 1715113198, 42}';
-  const validCID = "bafkreicoq2mk6aiqswiery35smtio7vxw65x4r2g3wjprlojbmuo652uv4";
+  const intention = JSON.stringify({
+    action: "Transfer 1 ETH to alice.eth",
+    from: "bob.eth",
+    bundler: "0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf",
+    expiry: 2346265198,
+    nonce: 1
+  });
+  const bundleData = JSON.stringify({
+    intentions: [intention],
+    proofs: ["proof goes here"],
+    timestamp: 1715113198,
+    nonce: 42
+  });
+  const validCID = "bafkreie6pqcanaeef2yzgpiluaqiuzeyhwf2x62q3v7k55tlq7smbkumrq";
 
   before(async () => {
     setRedisClient(redis);

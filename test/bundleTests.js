@@ -51,12 +51,11 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     ]
   );
   const bundleData = JSON.stringify({
-    intentions: [intention],
     proofs: [proof],
     timestamp: 1715113198,
     nonce: 42
   });
-  const bundleCID = "bafkreielfon4vct453q4beuwsf5v6w47iw25xsnqkgnzp33ncelnjnlfxu";
+  const bundleCID = "bafkreiekosbmmdsjo3tk5uwk4iajhwgsvmxmax2mbyar6bhemfvk7bdpke";
 
   before(async () => {
     setRedisClient(redis);

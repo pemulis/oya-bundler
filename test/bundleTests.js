@@ -38,14 +38,15 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
       {
         intention: intention,
         // proof below updates balances on the virtual chain, using locked assets
-        proof: {
+        // proof may require multiple virtual token transfers, but this has just one
+        proof: [{
           token: 0x0000000000000000000000000000000000000000, // null address means ETH
           chainId: 1,
           from: "0xbobsafeaddress", // Oya Safe owned by Bob
           to: "0xalicesafeaddress", // Oya Safe owned by Alice, can be virtual
           amount: 1000000000000000000, // 1 ETH
           tokenId: 0 // no token ID for ETH, this field used for NFTs
-        }
+        }]
       }
     ]
   );
@@ -55,7 +56,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     timestamp: 1715113198,
     nonce: 42
   });
-  const bundleCID = "bafkreiem6yqspatvnobaqevocyamsx4j3k7tonjl4qwdznkctkow4vr3ye";
+  const bundleCID = "bafkreielfon4vct453q4beuwsf5v6w47iw25xsnqkgnzp33ncelnjnlfxu";
 
   before(async () => {
     setRedisClient(redis);

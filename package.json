@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@brian-ai/sdk": "^0.1.0",
     "@helia/strings": "^3.0.3",
     "body-parser": "^1.20.2",
     "dotenv": "^16.4.5",

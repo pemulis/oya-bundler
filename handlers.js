@@ -105,12 +105,16 @@ async function handleIntention(intention, signature, from) {
   }
 
   // Use Brian to translate intention to transaction details
+  
 
   // Alert the bundler with intention and transaction details
 
+
   // Store in a cache, to add to a bundle after some time period?
 
+
   // New function to create a bundle with cached intentions, and then call publish?
+
 }
 
 

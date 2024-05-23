@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-const { publishBundle, setRedisClient, getLatestBundle, getCIDsByTimestamp } = require('../handlers');
+const { publishBundle, setRedisClient, getLatestBundle, getCIDsByTimestamp, handleIntention } = require('../handlers');
 const { ethers, Wallet } = require('ethers');
 
 /*
@@ -23,7 +23,7 @@ const redis = new Redis({
 
 // Let's run some tests!
 describe('Publish to IPFS and retrieve data from Redis', function() {
-  let bundlerSignatureOnBundle, accountHolderSignatureOnBundle;
+  let bundlerSignatureOnBundle, accountHolderSignatureOnBundle, accountHolderSignatureOnIntention;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
   const accountHolderAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
   const intention = JSON.stringify({
@@ -63,6 +63,8 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
     bundlerSignatureOnBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(bundleData));
     accountHolderSignatureOnBundle = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(bundleData));
+    bundlerSignatureOnIntention = await new Wallet(bundlerPrivateKey).signMessage(intention);
+    accountHolderSignatureOnIntention = await new Wallet(accountHolderPrivateKey).signMessage(intention);
 
     let heliaAddStub = sinon.stub().resolves(bundleCID);
     global.s = { add: heliaAddStub };
@@ -78,7 +80,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
       .to.be.rejectedWith("Unauthorized: Only the bundler can publish new bundles.");
   });
 
-  it('should throw an error if the signature verification fails', async () => {
+  it('should throw an error if bundler signature verification fails', async () => {
     try {
       await expect(publishBundle(bundleData, accountHolderSignatureOnBundle, bundlerAddress))
         .to.be.rejectedWith("Signature verification failed");
@@ -133,6 +135,18 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     const startTimestamp = Date.now();
     const endTimestamp = startTimestamp + 1000; // 1 second later
     await expect(getCIDsByTimestamp(startTimestamp, endTimestamp)).to.be.rejectedWith("No data found");
+  });
+
+  it('should throw error if account holder signature verification fails', async () => {
+    try {
+      await expect(handleIntention(intention, bundlerSignatureOnIntention, accountHolderAddress))
+        .to.be.rejectedWith("Signature verification failed");
+    } catch (error) {
+      console.error("Error caught in test: ", error);
+      throw error; // Re-throw to ensure test fails as expected
+    } finally {
+      sinon.restore();
+    }
   });
 
   afterEach(() => {

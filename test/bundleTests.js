@@ -29,8 +29,8 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   const accountHolderAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
   const intention = {
     action: "Transfer 1 ETH to alice.eth on Ethereum",
-    from: "bob.eth",
-    bundler: "0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf",
+    from: accountHolderAddress,
+    bundler: bundlerAddress,
     expiry: 2346265198,
     nonce: 1
   };
@@ -43,8 +43,8 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
         proof: [{
           token: 0x0000000000000000000000000000000000000000, // null address means ETH
           chainId: 1,
-          from: "0xbobsafeaddress", // Oya Safe owned by Bob
-          to: "0xalicesafeaddress", // Oya Safe owned by Alice, can be virtual
+          from: accountHolderAddress,
+          to: "alice.eth",
           amount: 1000000000000000000, // 1 ETH
           tokenId: 0 // no token ID for ETH, this field used for NFTs
         }]
@@ -56,7 +56,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     timestamp: 1715113198,
     nonce: 42
   });
-  const bundleCID = "bafkreiapvkklkwacnq52y2ki7qz7p5ndhc4wgu33srsdcwyytuygvzfrau";
+  const bundleCID = "bafkreia55cbv7vmabiigwrdv7nx565rgfyiwb226l5ndqmupzvbdq6umie";
 
   before(async () => {
     setRedisClient(redis);

@@ -109,13 +109,11 @@ async function handleIntention(intention, signature, from) {
 
   // Use Brian to translate intention to transaction details
   console.log("intention:", intention.action);
-  console.log("stringified:", JSON.stringify(intention.action));
   console.log("from address:", from);
   txDetails = await brian.transact({
-    prompt: JSON.stringify(intention.action),
+    prompt: intention.action,
     address: from,
   });
-  console.log(util.inspect(txDetails, { showHidden: false, depth: null, colors: true }));
 
   // Future: Alert the bundler with intention and transaction details, and do some checks
   // Future: Store in a cache, to add to a bundle after some time period

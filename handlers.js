@@ -1,6 +1,8 @@
 // Load environment variables
 require('dotenv').config();
 
+const util = require('util');
+
 const ethers = require('ethers');
 
 let brian;
@@ -106,7 +108,14 @@ async function handleIntention(intention, signature, from) {
   }
 
   // Use Brian to translate intention to transaction details
-
+  console.log("intention:", intention.action);
+  console.log("stringified:", JSON.stringify(intention.action));
+  console.log("from address:", from);
+  txDetails = await brian.transact({
+    prompt: JSON.stringify(intention.action),
+    address: from,
+  });
+  console.log(util.inspect(txDetails, { showHidden: false, depth: null, colors: true }));
 
   // Alert the bundler with intention and transaction details
 

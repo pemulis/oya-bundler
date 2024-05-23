@@ -23,11 +23,12 @@ const redis = new Redis({
 
 // Let's run some tests!
 describe('Publish to IPFS and retrieve data from Redis', function() {
+  this.timeout(60000); // Set timeout to 60 seconds (60000ms)
   let bundlerSignatureOnBundle, accountHolderSignatureOnBundle, accountHolderSignatureOnIntention;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
   const accountHolderAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
   const intention = {
-    action: "Transfer 1 ETH to alice.eth",
+    action: "Transfer 1 ETH to alice.eth on Ethereum",
     from: "bob.eth",
     bundler: "0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf",
     expiry: 2346265198,
@@ -55,7 +56,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     timestamp: 1715113198,
     nonce: 42
   });
-  const bundleCID = "bafkreiekosbmmdsjo3tk5uwk4iajhwgsvmxmax2mbyar6bhemfvk7bdpke";
+  const bundleCID = "bafkreiapvkklkwacnq52y2ki7qz7p5ndhc4wgu33srsdcwyytuygvzfrau";
 
   before(async () => {
     setRedisClient(redis);
@@ -147,6 +148,13 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     } finally {
       sinon.restore();
     }
+  });
+
+  it('should get transaction details if account holder signature verification succeeds', async () => {
+    await expect(
+      handleIntention(intention, accountHolderSignatureOnIntention, accountHolderAddress)
+    ).to.not.be.rejected;
+    sinon.restore();
   });
 
   afterEach(() => {

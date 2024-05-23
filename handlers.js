@@ -10,6 +10,7 @@ let brian;
 
     const options = {
       apiKey: process.env.BRIAN_API_KEY,
+      apiUrl: process.env.BRIAN_API_URL,
     };
 
     brian = new BrianSDK(options);

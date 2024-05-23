@@ -108,8 +108,6 @@ async function handleIntention(intention, signature, from) {
   }
 
   // Use Brian to translate intention to transaction details
-  console.log("intention:", intention.action);
-  console.log("from address:", from);
   txDetails = await brian.transact({
     prompt: intention.action,
     address: from,
@@ -128,7 +126,7 @@ async function handleIntention(intention, signature, from) {
     amount: txDetails[0].data.toAmount, // 1 ETH
     tokenId: 0 // no token ID for ETH, this field used for NFTs
   }
-  console.log("proof:", proof);
+  
   const bundle = JSON.stringify(
     {
       proofs: [
@@ -143,7 +141,8 @@ async function handleIntention(intention, signature, from) {
       nonce: 0
     }
   );
-  console.log("bundle:", bundle);
+  
+  return bundle;
 }
 
 

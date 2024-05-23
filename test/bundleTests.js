@@ -57,11 +57,11 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     nonce: 42
   });
   const bundleCID = "bafkreia55cbv7vmabiigwrdv7nx565rgfyiwb226l5ndqmupzvbdq6umie";
+  const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
+  const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
 
   before(async () => {
     setRedisClient(redis);
-    const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
-    const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
     bundlerSignatureOnBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(bundleData));
     accountHolderSignatureOnBundle = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(bundleData));
     bundlerSignatureOnIntention = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(intention));
@@ -155,6 +155,20 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
       handleIntention(intention, accountHolderSignatureOnIntention, accountHolderAddress)
     ).to.not.be.rejected;
     sinon.restore();
+  });
+
+  it('should publish bundle with valid intention and proof', async () => {
+    // Call handleIntention to get the bundle
+    const newBundle = await handleIntention(intention, accountHolderSignatureOnIntention, accountHolderAddress);
+
+    // Generate bundler signature on the bundle data
+    const bundlerSignatureOnNewBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(newBundle));
+
+    // Call publishBundle with the bundle data, bundler signature, and from address
+    const newCid = await publishBundle(newBundle, bundlerSignatureOnNewBundle, bundlerAddress);
+
+    const publishedBundles = await redis.zrange('cids', 0, -1);
+    expect(publishedBundles).to.include(newCid.toString());
   });
 
   afterEach(() => {

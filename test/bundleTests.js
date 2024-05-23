@@ -26,17 +26,17 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   let bundlerSignatureOnBundle, accountHolderSignatureOnBundle, accountHolderSignatureOnIntention;
   const bundlerAddress = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf';
   const accountHolderAddress = '0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E';
-  const intention = JSON.stringify({
+  const intention = {
     action: "Transfer 1 ETH to alice.eth",
     from: "bob.eth",
     bundler: "0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf",
     expiry: 2346265198,
     nonce: 1
-  });
+  };
   const proof = JSON.stringify(
     [
       {
-        intention: intention,
+        intention: JSON.stringify(intention),
         // proof below updates balances on the virtual chain, using locked assets
         // proof may require multiple virtual token transfers, but this has just one
         proof: [{
@@ -63,8 +63,8 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
     bundlerSignatureOnBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(bundleData));
     accountHolderSignatureOnBundle = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(bundleData));
-    bundlerSignatureOnIntention = await new Wallet(bundlerPrivateKey).signMessage(intention);
-    accountHolderSignatureOnIntention = await new Wallet(accountHolderPrivateKey).signMessage(intention);
+    bundlerSignatureOnIntention = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(intention));
+    accountHolderSignatureOnIntention = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(intention));
 
     let heliaAddStub = sinon.stub().resolves(bundleCID);
     global.s = { add: heliaAddStub };
@@ -139,7 +139,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
 
   it('should throw error if account holder signature verification fails', async () => {
     try {
-      await expect(handleIntention(intention, bundlerSignatureOnIntention, accountHolderAddress))
+      await expect(handleIntention(JSON.stringify(intention), bundlerSignatureOnIntention, accountHolderAddress))
         .to.be.rejectedWith("Signature verification failed");
     } catch (error) {
       console.error("Error caught in test: ", error);
@@ -148,6 +148,8 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
       sinon.restore();
     }
   });
+
+
 
   afterEach(() => {
     sinon.restore();

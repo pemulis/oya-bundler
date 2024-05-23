@@ -1,4 +1,23 @@
+// Load environment variables
+require('dotenv').config();
+
 const ethers = require('ethers');
+
+let brian;
+(async () => {
+  try {
+    const { BrianSDK } = await import('@brian-ai/sdk');
+
+    const options = {
+      apiKey: process.env.BRIAN_API_KEY,
+    };
+
+    brian = new BrianSDK(options);
+
+  } catch (err) {
+    console.error('Error importing BrianSDK:', err);
+  }
+})();
 
 // Lazy-load redis client
 let redis;

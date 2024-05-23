@@ -117,14 +117,35 @@ async function handleIntention(intention, signature, from) {
   });
   console.log(util.inspect(txDetails, { showHidden: false, depth: null, colors: true }));
 
-  // Alert the bundler with intention and transaction details
+  // Future: Alert the bundler with intention and transaction details, and do some checks
+  // Future: Store in a cache, to add to a bundle after some time period
+  // Future: New function to create a bundle with cached intentions, and then call publish
 
-
-  // Store in a cache, to add to a bundle after some time period?
-
-
-  // New function to create a bundle with cached intentions, and then call publish?
-
+  // Proof-of-concept: Build a bundle with virtual tx details and publish
+  const proof = {
+    token: txDetails[0].data.fromToken.address, // null address means ETH
+    chainId: txDetails[0].data.fromToken.chainId,
+    from: txDetails[0].data.fromAddress, // Oya Safe owned by Bob
+    to: txDetails[0].data.toAddress, // Oya Safe owned by Alice, can be virtual
+    amount: txDetails[0].data.toAmount, // 1 ETH
+    tokenId: 0 // no token ID for ETH, this field used for NFTs
+  }
+  console.log("proof:", proof);
+  const bundle = JSON.stringify(
+    {
+      proofs: [
+        {
+          intention: JSON.stringify(intention),
+          // proof below updates balances on the virtual chain, using locked assets
+          // proof may require multiple virtual token transfers, but this has just one
+          proof: [proof]
+        }
+      ],
+      timestamp: Math.floor(Date.now() / 1000),
+      nonce: 0
+    }
+  );
+  console.log("bundle:", bundle);
 }
 
 

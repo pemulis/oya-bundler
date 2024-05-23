@@ -99,13 +99,13 @@ async function getCIDsByTimestamp(start, end) {
 
 async function handleIntention(intention, signature, from) {
   // Verify signature (mock logic)
-  const signerAddress = ethers.verifyMessage(intention, signature);
+  const signerAddress = ethers.verifyMessage(JSON.stringify(intention), signature);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }
 
   // Use Brian to translate intention to transaction details
-  
+
 
   // Alert the bundler with intention and transaction details
 

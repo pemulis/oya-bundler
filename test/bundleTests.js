@@ -139,7 +139,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
 
   it('should throw error if account holder signature verification fails', async () => {
     try {
-      await expect(handleIntention(JSON.stringify(intention), bundlerSignatureOnIntention, accountHolderAddress))
+      await expect(handleIntention(intention, bundlerSignatureOnIntention, accountHolderAddress))
         .to.be.rejectedWith("Signature verification failed");
     } catch (error) {
       console.error("Error caught in test: ", error);
@@ -148,8 +148,6 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
       sinon.restore();
     }
   });
-
-
 
   afterEach(() => {
     sinon.restore();

@@ -137,7 +137,6 @@ async function handleIntention(intention, signature, from) {
           proof: [proof]
         }
       ],
-      timestamp: Math.floor(Date.now() / 1000),
       nonce: 0
     }
   );

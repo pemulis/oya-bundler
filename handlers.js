@@ -2,10 +2,27 @@
 require('dotenv').config();
 
 const util = require('util');
+const fs = require('fs');
+const path = require('path');
+const { ethers } = require('ethers');
 
-const ethers = require('ethers');
+// Define the contract address and the Sepolia provider
+const contractAddress = "0xe3e0e2CA7c462b4DCB5c1dF4e651857717189129";
+console.log(process.env.SEPOLIA_RPC_URL);
+const provider = new ethers.providers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
+
+// Define the private key of the bundler (for signing the transaction)
+const wallet = new ethers.Wallet(process.env.TEST_PRIVATE_KEY, provider);
+
+// Read the contract ABI from the JSON file
+const abiPath = path.join(__dirname, 'abi', 'BundleTracker.json');
+const contractABI = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
+
+// Create a contract instance
+const bundleTrackerContract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 let brian;
+
 (async () => {
   try {
     const { BrianSDK } = await import('@brian-ai/sdk');
@@ -53,7 +70,6 @@ async function ensureHeliaSetup() {
 // Hardcoded address for the bundler
 const BUNDLER_ADDRESS = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf'; // for testing, insecure
 
-// Function to publish data to IPFS with signature validation
 async function publishBundle(data, signature, from) {
   await ensureHeliaSetup();  // Ensure Helia is ready before proceeding
   if (from !== BUNDLER_ADDRESS) {
@@ -73,8 +89,15 @@ async function publishBundle(data, signature, from) {
     console.error("Failed to add CID to Redis:", error);
   }
 
-  // Call BundleTracker here and wait until transaction is done
-  console.log("call BundleTracker here");
+  // Call the proposeBundle function on the contract
+  try {
+    const tx = await bundleTrackerContract.proposeBundle(cid.toString());
+    await tx.wait();  // Wait for the transaction to be mined
+    console.log("Bundle proposed successfully:", tx);
+  } catch (error) {
+    console.error("Failed to propose bundle:", error);
+    throw new Error("Blockchain transaction failed");
+  }
   
   return cid;
 }

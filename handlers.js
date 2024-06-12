@@ -72,6 +72,10 @@ async function publishBundle(data, signature, from) {
   } catch (error) {
     console.error("Failed to add CID to Redis:", error);
   }
+
+  // Call BundleTracker here and wait until transaction is done
+  console.log("call BundleTracker here");
+  
   return cid;
 }
 
@@ -137,7 +141,7 @@ async function handleIntention(intention, signature, from) {
           proof: [proof]
         }
       ],
-      nonce: 0
+      nonce: 0 // need to save this nonce somewhere
     }
   );
   

@@ -4,15 +4,22 @@ require('dotenv').config();
 const util = require('util');
 const fs = require('fs');
 const path = require('path');
-const { ethers } = require('ethers');
+const { ethers } = require("ethers");
+const { Alchemy } = require("alchemy-sdk");
+
+const settings = {
+  apiKey: process.env.ALCHEMY_API_KEY,
+  network: "eth-sepolia"
+};
+
+const alchemy = new Alchemy(settings);
 
 // Define the contract address and the Sepolia provider
 const contractAddress = "0xe3e0e2CA7c462b4DCB5c1dF4e651857717189129";
-console.log(process.env.SEPOLIA_RPC_URL);
-const provider = new ethers.providers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
+// const provider = new ethers.providers.JsonRpcProvider(process.env.SEPOLIA_PROVIDER, "sepolia");
 
 // Define the private key of the bundler (for signing the transaction)
-const wallet = new ethers.Wallet(process.env.TEST_PRIVATE_KEY, provider);
+const wallet = new ethers.Wallet(process.env.TEST_PRIVATE_KEY, alchemy.core);
 
 // Read the contract ABI from the JSON file
 const abiPath = path.join(__dirname, 'abi', 'BundleTracker.json');
@@ -70,6 +77,7 @@ async function ensureHeliaSetup() {
 // Hardcoded address for the bundler
 const BUNDLER_ADDRESS = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf'; // for testing, insecure
 
+// Function to publish data to IPFS with signature validation
 async function publishBundle(data, signature, from) {
   await ensureHeliaSetup();  // Ensure Helia is ready before proceeding
   if (from !== BUNDLER_ADDRESS) {

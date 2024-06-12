@@ -23,7 +23,6 @@ const wallet = new ethers.Wallet(process.env.TEST_PRIVATE_KEY, alchemy.core);
 // Read the contract ABI from the JSON file
 const abiPath = path.join(__dirname, 'abi', 'BundleTracker.json');
 const contractABI = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
-console.log(Array.isArray(contractABI), contractABI);
 
 // Create a contract instance
 const bundleTrackerContract = new ethers.Contract(contractAddress, contractABI, wallet);

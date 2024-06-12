@@ -16,7 +16,6 @@ const alchemy = new Alchemy(settings);
 
 // Define the contract address and the Sepolia provider
 const contractAddress = "0xe3e0e2CA7c462b4DCB5c1dF4e651857717189129";
-// const provider = new ethers.providers.JsonRpcProvider(process.env.SEPOLIA_PROVIDER, "sepolia");
 
 // Define the private key of the bundler (for signing the transaction)
 const wallet = new ethers.Wallet(process.env.TEST_PRIVATE_KEY, alchemy.core);
@@ -24,6 +23,7 @@ const wallet = new ethers.Wallet(process.env.TEST_PRIVATE_KEY, alchemy.core);
 // Read the contract ABI from the JSON file
 const abiPath = path.join(__dirname, 'abi', 'BundleTracker.json');
 const contractABI = JSON.parse(fs.readFileSync(abiPath, 'utf8'));
+console.log(Array.isArray(contractABI), contractABI);
 
 // Create a contract instance
 const bundleTrackerContract = new ethers.Contract(contractAddress, contractABI, wallet);

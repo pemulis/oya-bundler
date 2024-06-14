@@ -18,7 +18,7 @@ const alchemy = new Alchemy(settings);
 const contractAddress = process.env.BUNDLE_TRACKER_ADDRESS;
 
 // Define the private key of the bundler (for signing the transaction)
-const wallet = new Wallet(process.env.TEST_PRIVATE_KEY, alchemy.core);
+const wallet = new Wallet(process.env.TEST_PRIVATE_KEY, alchemy);
 
 // Read the contract ABI from the JSON file
 const abiPath = path.join(__dirname, 'abi', 'BundleTracker.json');
@@ -98,13 +98,15 @@ async function publishBundle(data, signature, from) {
   } catch (error) {
     console.error("Failed to add CID to Redis:", error);
   }
-
+45
   // Call the proposeBundle function on the contract
   try {
     const tx = await bundleTrackerContract.proposeBundle(cidToString);
     console.log("tx:", tx);
-    await tx.wait();  // Wait for the transaction to be mined
-    console.log("Bundle proposed successfully:", tx);
+    // tx.wait() doesn't work due to differences with alchemy provider functions
+    // const receipt = await tx.wait();  // Wait for the transaction to be mined
+    const receipt = await alchemy.transact.waitForTransaction(tx.hash);
+    console.log("Bundle proposed successfully:", receipt);
   } catch (error) {
     console.error("Failed to propose bundle:", error);
     throw new Error("Blockchain transaction failed");

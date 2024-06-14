@@ -90,17 +90,17 @@ async function publishBundle(data, signature, from) {
 
   const cid = await s.add(data);  // Ensure this is defined and accessible
   console.log("cid:", cid);
+  const cidToString = cid.toString();
+  console.log("cid to string:", cidToString);
   const timestamp = Date.now();
   try {
-    await redis.zadd('cids', timestamp, cid.toString());
+    await redis.zadd('cids', timestamp, cidToString);
   } catch (error) {
     console.error("Failed to add CID to Redis:", error);
   }
 
   // Call the proposeBundle function on the contract
   try {
-    const cidToString = cid.toString();
-    console.log("cid to string:", cidToString);
     const tx = await bundleTrackerContract.proposeBundle(cidToString);
     console.log("tx:", tx);
     await tx.wait();  // Wait for the transaction to be mined

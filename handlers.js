@@ -89,6 +89,7 @@ async function publishBundle(data, signature, from) {
   }
 
   const cid = await s.add(data);  // Ensure this is defined and accessible
+  console.log("cid:", cid);
   const timestamp = Date.now();
   try {
     await redis.zadd('cids', timestamp, cid.toString());
@@ -98,7 +99,9 @@ async function publishBundle(data, signature, from) {
 
   // Call the proposeBundle function on the contract
   try {
-    const tx = await bundleTrackerContract.proposeBundle(cid.toString());
+    const cidToString = cid.toString();
+    console.log("cid to string:", cidToString);
+    const tx = await bundleTrackerContract.proposeBundle(cidToString);
     await tx.wait();  // Wait for the transaction to be mined
     console.log("Bundle proposed successfully:", tx);
   } catch (error) {

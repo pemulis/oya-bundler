@@ -5,7 +5,7 @@ const util = require('util');
 const fs = require('fs');
 const path = require('path');
 const { ethers } = require("ethers");
-const { Alchemy } = require("alchemy-sdk");
+const { Alchemy, Wallet } = require("alchemy-sdk");
 
 const settings = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -18,7 +18,7 @@ const alchemy = new Alchemy(settings);
 const contractAddress = process.env.BUNDLE_TRACKER_ADDRESS;
 
 // Define the private key of the bundler (for signing the transaction)
-const wallet = new ethers.Wallet(process.env.TEST_PRIVATE_KEY, alchemy.core);
+const wallet = new Wallet(process.env.TEST_PRIVATE_KEY, alchemy.core);
 
 // Read the contract ABI from the JSON file
 const abiPath = path.join(__dirname, 'abi', 'BundleTracker.json');
@@ -102,6 +102,7 @@ async function publishBundle(data, signature, from) {
     const cidToString = cid.toString();
     console.log("cid to string:", cidToString);
     const tx = await bundleTrackerContract.proposeBundle(cidToString);
+    console.log("tx:", tx);
     await tx.wait();  // Wait for the transaction to be mined
     console.log("Bundle proposed successfully:", tx);
   } catch (error) {

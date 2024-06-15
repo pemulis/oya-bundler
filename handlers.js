@@ -89,9 +89,7 @@ async function publishBundle(data, signature, from) {
   }
 
   const cid = await s.add(data);  // Ensure this is defined and accessible
-  console.log("cid:", cid);
   const cidToString = cid.toString();
-  console.log("cid to string:", cidToString);
   const timestamp = Date.now();
   try {
     await redis.zadd('cids', timestamp, cidToString);
@@ -102,11 +100,9 @@ async function publishBundle(data, signature, from) {
   // Call the proposeBundle function on the contract
   try {
     const tx = await bundleTrackerContract.proposeBundle(cidToString);
-    console.log("tx:", tx);
     // tx.wait() doesn't work due to differences with alchemy provider functions
     // const receipt = await tx.wait();  // Wait for the transaction to be mined
     const receipt = await alchemy.transact.waitForTransaction(tx.hash);
-    console.log("Bundle proposed successfully:", receipt);
   } catch (error) {
     console.error("Failed to propose bundle:", error);
     throw new Error("Blockchain transaction failed");

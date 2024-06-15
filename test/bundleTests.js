@@ -92,9 +92,6 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     }
   });  
 
-  console.log("bundle data:", bundleData);
-  console.log("bundler signature on bundle:", bundlerSignatureOnBundle);
-  console.log("bundler address:", bundlerAddress);
   it('should publish data to IPFS and return the CID if authorized and the signature is valid', async () => {
     const cid = await publishBundle(bundleData, bundlerSignatureOnBundle, bundlerAddress);
     expect(cid.toString()).to.equal(bundleCID);

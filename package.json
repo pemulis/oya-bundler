@@ -6,7 +6,8 @@
   "scripts": {
     "pretest": "redis-server --daemonize yes",
     "test": "mocha --exit",
-    "posttest": "redis-cli shutdown"
+    "posttest": "redis-cli shutdown",
+    "start": "node app.js"
   },
   "keywords": [],
   "author": "",

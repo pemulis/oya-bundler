@@ -53,6 +53,21 @@ function setRedisClient(customClient) {
   redis = customClient;
 }
 
+// Initialize Redis client if REDIS_URL is available
+if (process.env.REDIS_URL) {
+  const client = redis.createClient({
+    url: process.env.REDIS_URL
+  });
+
+  client.on('error', (err) => {
+    console.error('Redis Client Error', err);
+  });
+
+  client.connect().then(() => {
+    setRedisClient(client);
+  });
+}
+
 // Variables for Helia instances
 let createHelia, strings, s;
 

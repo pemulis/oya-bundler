@@ -168,13 +168,15 @@ async function handleIntention(intention, signature, from) {
   // Future: Store in a cache, to add to a bundle after some time period
   // Future: New function to create a bundle with cached intentions, and then call publish
 
+  // Insert swap handling here
+
   // Proof-of-concept: Build a bundle with virtual tx details and publish
   const proof = {
-    token: txDetails[0].data.fromToken.address, // null address means ETH
+    token: txDetails[0].data.fromToken.address,
     chainId: txDetails[0].data.fromToken.chainId,
-    from: txDetails[0].data.fromAddress, // Oya Safe owned by Bob
-    to: txDetails[0].data.toAddress, // Oya Safe owned by Alice, can be virtual
-    amount: txDetails[0].data.toAmount, // 1 ETH
+    from: txDetails[0].data.fromAddress,
+    to: txDetails[0].data.toAddress,
+    amount: txDetails[0].data.toAmount,
     tokenId: 0 // this field is for NFTs, which are not yet supported
   }
   

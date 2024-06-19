@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { ethers } = require("ethers");
 const { Alchemy, Wallet } = require("alchemy-sdk");
+const redis = require('redis');
 
 const settings = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -46,16 +47,16 @@ let brian;
 })();
 
 // Lazy-load redis client
-let redis;
+let client;
 
 // Allow testing environment to inject a mock Redis, or use a real one
 function setRedisClient(customClient) {
-  redis = customClient;
+  client = customClient;
 }
 
 // Initialize Redis client if REDIS_URL is available
 if (process.env.REDIS_URL) {
-  const client = redis.createClient({
+  client = redis.createClient({
     url: process.env.REDIS_URL
   });
 
@@ -107,7 +108,7 @@ async function publishBundle(data, signature, from) {
   const cidToString = cid.toString();
   const timestamp = Date.now();
   try {
-    await redis.zadd('cids', timestamp, cidToString);
+    await client.zadd('cids', timestamp, cidToString);
   } catch (error) {
     console.error("Failed to add CID to Redis:", error);
   }
@@ -128,7 +129,7 @@ async function publishBundle(data, signature, from) {
 
 // Function to get the latest CID
 async function getLatestBundle() {
-  const result = await redis.zrevrange('cids', 0, 0);
+  const result = await client.zrevrange('cids', 0, 0);
   if (!result || result.length === 0) throw new Error("No bundles available");
   return { ipfsPath: result[0] };
 }
@@ -136,7 +137,7 @@ async function getLatestBundle() {
 // Function to get CIDs in a specific timestamp range
 async function getCIDsByTimestamp(start, end) {
   // Retrieve both the CIDs and their scores
-  const result = await redis.zrangebyscore('cids', start, end, 'WITHSCORES');
+  const result = await client.zrangebyscore('cids', start, end, 'WITHSCORES');
   if (!result || result.length === 0) throw new Error("No data found");
 
   // Since the result array includes both the member and the score interleaved,

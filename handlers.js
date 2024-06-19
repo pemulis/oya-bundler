@@ -153,6 +153,7 @@ async function getCIDsByTimestamp(start, end) {
 }
 
 async function handleIntention(intention, signature, from) {
+  console.log("Intention:", JSON.stringify(intention));
   const signerAddress = ethers.verifyMessage(JSON.stringify(intention), signature);
   console.log('Signer address:', signerAddress);
   console.log('From address:', from);

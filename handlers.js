@@ -178,8 +178,7 @@ async function handleIntention(intention, signature, from) {
     tokenId: 0 // this field is for NFTs, which are not yet supported
   }
   
-  const bundle = JSON.stringify(
-    {
+  const bundle = {
       proofs: [
         {
           intention: intention,
@@ -189,13 +188,12 @@ async function handleIntention(intention, signature, from) {
         }
       ],
       nonce: 0 // need to save this nonce somewhere
-    }
-  );
+    };
 
   if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811") {
     console.log("Intention sent by authorized live tester");
     // Publish the bundle to IPFS
-    const bundlerSignature = await wallet.signMessage(bundle);
+    const bundlerSignature = await wallet.signMessage(JSON.stringify(bundle));
     publishBundle(bundle, bundlerSignature, BUNDLER_ADDRESS);
   }
   

@@ -171,13 +171,16 @@ async function handleIntention(intention, signature, from) {
   // Insert swap handling here
 
   // Proof-of-concept: Build a bundle with virtual tx details and publish
-  const proof = {
-    token: txDetails[0].data.fromToken.address,
-    chainId: txDetails[0].data.fromToken.chainId,
-    from: txDetails[0].data.fromAddress,
-    to: txDetails[0].data.toAddress,
-    amount: txDetails[0].data.toAmount,
-    tokenId: 0 // this field is for NFTs, which are not yet supported
+  const proofs = [];
+  if (txDetails.action === "transfer") {
+    proofs[0] = {
+      token: txDetails[0].data.fromToken.address,
+      chainId: txDetails[0].data.fromToken.chainId,
+      from: txDetails[0].data.fromAddress,
+      to: txDetails[0].data.toAddress,
+      amount: txDetails[0].data.toAmount,
+      tokenId: 0 // this field is for NFTs, which are not yet supported
+    }
   }
   
   const bundle = {
@@ -186,7 +189,7 @@ async function handleIntention(intention, signature, from) {
           intention: intention,
           // proof below updates balances on the virtual chain, using locked assets
           // proof may require multiple virtual token transfers, but this has just one
-          proof: [proof]
+          proof: proofs
         }
       ],
       nonce: 0 // need to save this nonce somewhere

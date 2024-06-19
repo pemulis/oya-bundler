@@ -153,10 +153,7 @@ async function getCIDsByTimestamp(start, end) {
 }
 
 async function handleIntention(intention, signature, from) {
-  console.log("Intention:", JSON.stringify(intention));
   const signerAddress = ethers.verifyMessage(JSON.stringify(intention), signature);
-  console.log('Signer address:', signerAddress);
-  console.log('From address:', from);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }
@@ -178,7 +175,7 @@ async function handleIntention(intention, signature, from) {
     from: txDetails[0].data.fromAddress, // Oya Safe owned by Bob
     to: txDetails[0].data.toAddress, // Oya Safe owned by Alice, can be virtual
     amount: txDetails[0].data.toAmount, // 1 ETH
-    tokenId: 0 // no token ID for ETH, this field used for NFTs
+    tokenId: 0 // this field is for NFTs, which are not yet supported
   }
   
   const bundle = JSON.stringify(
@@ -195,9 +192,11 @@ async function handleIntention(intention, signature, from) {
     }
   );
 
-  if (signerAddress === "0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E" || signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811") {
-    console.log("Intention sent by authorized tester");
+  if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811") {
+    console.log("Intention sent by authorized live tester");
     // Publish the bundle to IPFS
+    const bundlerSignature = await wallet.signMessage(bundle);
+    publishBundle(bundle, bundlerSignature, from);
   }
   
   return bundle;

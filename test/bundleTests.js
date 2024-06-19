@@ -34,10 +34,8 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     expiry: 2346265198,
     nonce: 1
   };
-  const proof = JSON.stringify(
-    [
-      {
-        intention: JSON.stringify(intention),
+  const proof = {
+        intention: intention,
         // proof below updates balances on the virtual chain, using locked assets
         // proof may require multiple virtual token transfers, but this has just one
         proof: [{
@@ -48,14 +46,12 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
           amount: 1000000000000000000, // 1 ETH
           tokenId: 0 // no token ID for ETH, this field used for NFTs
         }]
-      }
-    ]
-  );
+      };
   const bundleData = JSON.stringify({
     proofs: [proof],
     nonce: 42
   });
-  const bundleCID = "bafkreiepnn3m2gym6m7efbsxnf2b3u5gkjupzfvpnyuwxln4qwr4totjgq";
+  const bundleCID = "bafkreicqc2ssny76w3cjiffmckfuvlbp4bjxflbtzfpik4niinmxnyjsne";
   const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
   const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
 

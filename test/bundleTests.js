@@ -34,6 +34,13 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     expiry: 2346265198,
     nonce: 1
   };
+  const swapIntention = {
+    action: "Swap 500 cUSDC for USDC",
+    from: accountHolderAddress,
+    bundler: bundlerAddress,
+    expiry: 2346265198,
+    nonce: 1
+  };
   const proof = {
         intention: intention,
         // proof below updates balances on the virtual chain, using locked assets

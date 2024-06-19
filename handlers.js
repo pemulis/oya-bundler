@@ -153,6 +153,10 @@ async function getCIDsByTimestamp(start, end) {
 }
 
 async function handleIntention(intention, signature, from) {
+  // Future: Alert the bundler with intention and transaction details, and do some checks
+  // Future: Store in a cache, to add to a bundle after some time period
+  // Future: New function to create a bundle with cached intentions, and then call publish
+  
   const signerAddress = ethers.verifyMessage(JSON.stringify(intention), signature);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
@@ -163,12 +167,6 @@ async function handleIntention(intention, signature, from) {
     prompt: intention.action,
     address: from,
   });
-
-  // Future: Alert the bundler with intention and transaction details, and do some checks
-  // Future: Store in a cache, to add to a bundle after some time period
-  // Future: New function to create a bundle with cached intentions, and then call publish
-
-  // Insert swap handling here
 
   // Proof-of-concept: Build a bundle with virtual tx details and publish
   const proofs = [];
@@ -181,19 +179,21 @@ async function handleIntention(intention, signature, from) {
       amount: txDetails[0].data.toAmount,
       tokenId: 0 // this field is for NFTs, which are not yet supported
     }
+  } else if (txDetails.action === "swap") {
+    console.info(txDetails);
   }
   
   const bundle = {
-      proofs: [
-        {
-          intention: intention,
-          // proof below updates balances on the virtual chain, using locked assets
-          // proof may require multiple virtual token transfers, but this has just one
-          proof: proofs
-        }
-      ],
-      nonce: 0 // need to save this nonce somewhere
-    };
+    proofs: [
+      {
+        intention: intention,
+        // proof below updates balances on the virtual chain, using locked assets
+        // proof may require multiple virtual token transfers, but this has just one
+        proof: proofs
+      }
+    ],
+    nonce: 0 // need to save this nonce somewhere
+  };
 
   if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811") {
     console.log("Intention sent by authorized live tester");

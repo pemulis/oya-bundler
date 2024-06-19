@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.post('/intention', async (req, res) => {
   try {
     const { intention, signature, from } = req.body;
-    console.log('Received intention:', intention, signature, fromt);
+    console.log('Received intention:', intention, signature, from);
     const response = await handleIntention(intention, signature, from);
     console.log('Response:', response);
     res.status(200).json(response);

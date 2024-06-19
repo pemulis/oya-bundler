@@ -196,7 +196,7 @@ async function handleIntention(intention, signature, from) {
     console.log("Intention sent by authorized live tester");
     // Publish the bundle to IPFS
     const bundlerSignature = await wallet.signMessage(bundle);
-    publishBundle(bundle, bundlerSignature, from);
+    publishBundle(bundle, bundlerSignature, BUNDLER_ADDRESS);
   }
   
   return bundle;

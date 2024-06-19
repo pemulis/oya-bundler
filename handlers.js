@@ -153,8 +153,9 @@ async function getCIDsByTimestamp(start, end) {
 }
 
 async function handleIntention(intention, signature, from) {
-  // Verify signature (mock logic)
   const signerAddress = ethers.verifyMessage(JSON.stringify(intention), signature);
+  console.log('Signer address:', signerAddress);
+  console.log('From address:', from);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }

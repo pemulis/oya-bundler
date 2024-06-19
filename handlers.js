@@ -99,7 +99,7 @@ async function publishBundle(data, signature, from) {
     throw new Error("Unauthorized: Only the bundler can publish new bundles.");
   }
 
-  const signerAddress = ethers.verifyMessage(JSON.stringify(data), signature);
+  const signerAddress = ethers.verifyMessage(data, signature);
   if (signerAddress !== from) {
     throw new Error("Signature verification failed");
   }
@@ -194,7 +194,7 @@ async function handleIntention(intention, signature, from) {
     console.log("Intention sent by authorized live tester");
     // Publish the bundle to IPFS
     const bundlerSignature = await wallet.signMessage(JSON.stringify(bundle));
-    publishBundle(bundle, bundlerSignature, BUNDLER_ADDRESS);
+    publishBundle(JSON.stringify(bundle), bundlerSignature, BUNDLER_ADDRESS);
   }
   
   return bundle;

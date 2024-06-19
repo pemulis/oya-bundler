@@ -47,10 +47,10 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
           tokenId: 0 // no token ID for ETH, this field used for NFTs
         }]
       };
-  const bundleData = JSON.stringify({
+  const bundleData = {
     proofs: [proof],
     nonce: 42
-  });
+  };
   const bundleCID = "bafkreicqc2ssny76w3cjiffmckfuvlbp4bjxflbtzfpik4niinmxnyjsne";
   const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
   const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
@@ -72,13 +72,13 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
 
   it('should throw an error if the caller is not the bundler', async () => {
     const unauthorizedFrom = accountHolderAddress;
-    await expect(publishBundle(bundleData, bundlerSignatureOnBundle, unauthorizedFrom))
+    await expect(publishBundle(JSON.stringify(bundleData), bundlerSignatureOnBundle, unauthorizedFrom))
       .to.be.rejectedWith("Unauthorized: Only the bundler can publish new bundles.");
   });
 
   it('should throw an error if bundler signature verification fails', async () => {
     try {
-      await expect(publishBundle(bundleData, accountHolderSignatureOnBundle, bundlerAddress))
+      await expect(publishBundle(JSON.stringify(bundleData), accountHolderSignatureOnBundle, bundlerAddress))
         .to.be.rejectedWith("Signature verification failed");
     } catch (error) {
       console.error("Error caught in test: ", error);
@@ -89,7 +89,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   });  
 
   it('should publish data to IPFS and return the CID if authorized and the signature is valid', async () => {
-    const cid = await publishBundle(bundleData, bundlerSignatureOnBundle, bundlerAddress);
+    const cid = await publishBundle(JSON.stringify(bundleData), bundlerSignatureOnBundle, bundlerAddress);
     expect(cid.toString()).to.equal(bundleCID);
 
     const result = await redis.zrange('cids', 0, -1);
@@ -160,7 +160,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     const bundlerSignatureOnNewBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(newBundle));
 
     // Call publishBundle with the bundle data, bundler signature, and from address
-    const newCid = await publishBundle(newBundle, bundlerSignatureOnNewBundle, bundlerAddress);
+    const newCid = await publishBundle(JSON.stringify(newBundle), bundlerSignatureOnNewBundle, bundlerAddress);
 
     const publishedBundles = await redis.zrange('cids', 0, -1);
     expect(publishedBundles).to.include(newCid.toString());

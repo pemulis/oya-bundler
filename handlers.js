@@ -185,7 +185,7 @@ async function handleIntention(intention, signature, from) {
     {
       proofs: [
         {
-          intention: JSON.stringify(intention),
+          intention: intention,
           // proof below updates balances on the virtual chain, using locked assets
           // proof may require multiple virtual token transfers, but this has just one
           proof: [proof]

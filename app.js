@@ -6,7 +6,6 @@ const { handleIntention, getLatestBundle, publishBundle } = require('./handlers'
 require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
@@ -14,11 +13,14 @@ app.use(bodyParser.json());
 app.post('/intention', async (req, res) => {
   try {
     const { intention, signature, from } = req.body;
-    console.log('Received intention:', intention, signature, from);
+    if (!intention || !signature || !from) {
+      throw new Error('Missing required fields');
+    }
+    console.log('Received signed intention:', intention, signature, from);
     const response = await handleIntention(intention, signature, from);
-    console.log('Response:', response);
     res.status(200).json(response);
   } catch (error) {
+    console.error('Error handling intention:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -44,6 +46,7 @@ app.get('/publish', async (req, res) => {
   }
 });
 
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

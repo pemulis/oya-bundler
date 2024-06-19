@@ -194,6 +194,11 @@ async function handleIntention(intention, signature, from) {
       nonce: 0 // need to save this nonce somewhere
     }
   );
+
+  if (signerAddress === "0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E" || signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811") {
+    console.log("Intention sent by authorized tester");
+    // Publish the bundle to IPFS
+  }
   
   return bundle;
 }

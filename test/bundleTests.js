@@ -39,7 +39,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     from: accountHolderAddress,
     bundler: bundlerAddress,
     expiry: 2346265198,
-    nonce: 1
+    nonce: 2
   };
   const proof = {
         intention: intention,
@@ -68,6 +68,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     accountHolderSignatureOnBundle = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(bundleData));
     bundlerSignatureOnIntention = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(intention));
     accountHolderSignatureOnIntention = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(intention));
+    accountHolderSignatureOnSwapIntention = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(swapIntention));
 
     let heliaAddStub = sinon.stub().resolves(bundleCID);
     global.s = { add: heliaAddStub };
@@ -162,6 +163,24 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
   it('should publish bundle with valid intention and proof', async () => {
     // Call handleIntention to get the bundle
     const newBundle = await handleIntention(intention, accountHolderSignatureOnIntention, accountHolderAddress);
+
+    // Generate bundler signature on the bundle data
+    const bundlerSignatureOnNewBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(newBundle));
+
+    // Call publishBundle with the bundle data, bundler signature, and from address
+    const newCid = await publishBundle(JSON.stringify(newBundle), bundlerSignatureOnNewBundle, bundlerAddress);
+
+    const publishedBundles = await redis.zrange('cids', 0, -1);
+    expect(publishedBundles).to.include(newCid.toString());
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('should publish bundle with valid swap intention and proof', async () => {
+    // Call handleIntention to get the bundle
+    const newBundle = await handleIntention(swapIntention, accountHolderSignatureOnSwapIntention, accountHolderAddress);
 
     // Generate bundler signature on the bundle data
     const bundlerSignatureOnNewBundle = await new Wallet(bundlerPrivateKey).signMessage(JSON.stringify(newBundle));

@@ -179,8 +179,24 @@ async function handleIntention(intention, signature, from) {
       amount: txDetails[0].data.toAmount,
       tokenId: 0 // this field is for NFTs, which are not yet supported
     }
-  } else {
-    return txDetails;
+  } else if (txDetails.action === "swap") {
+    proofs[0] = {
+      token: txDetails[0].data.fromToken.address,
+      chainId: txDetails[0].data.fromToken.chainId,
+      from: txDetails[0].data.fromAddress,
+      to: txDetails[0].data.toAddress,
+      amount: txDetails[0].data.toAmount,
+      tokenId: 0 // this field is for NFTs, which are not yet supported
+    },
+    // second proof is the bundler filling the other side of the swap based on market price
+    proofs[1] = {
+      token: txDetails[0].data.steps[0].toToken.address,
+      chainId: txDetails[0].data.steps[0].toToken.chainId,
+      from: BUNDLER_ADDRESS,
+      to: txDetails[0].data.fromAddress,
+      amount: txDetails[0].data.steps[0].toAmount,
+      tokenId: 0 // this field is for NFTs, which are not yet supported
+    }
   }
   
   const bundle = {

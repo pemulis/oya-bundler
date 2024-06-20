@@ -170,6 +170,7 @@ async function handleIntention(intention, signature, from) {
 
   // Proof-of-concept: Build a bundle with virtual tx details and publish
   const proofs = [];
+  console.info("txDetails: ", txDetails);
   if (txDetails.action === "transfer") {
     proofs[0] = {
       token: txDetails[0].data.fromToken.address,

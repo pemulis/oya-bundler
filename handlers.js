@@ -180,7 +180,7 @@ async function handleIntention(intention, signature, from) {
       tokenId: 0 // this field is for NFTs, which are not yet supported
     }
   } else if (txDetails.action === "swap") {
-    console.info(txDetails);
+    return txDetails;
   }
   
   const bundle = {

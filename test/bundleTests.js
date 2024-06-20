@@ -35,7 +35,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     nonce: 1
   };
   const swapIntention = {
-    action: "Swap 500 cUSDC for USDC",
+    action: "Swap 500 cUSDC for USDC on Ethereum",
     from: accountHolderAddress,
     bundler: bundlerAddress,
     expiry: 2346265198,

@@ -170,33 +170,36 @@ async function handleIntention(intention, signature, from) {
 
   // Proof-of-concept: Build a bundle with virtual tx details and publish
   const proofs = [];
-  if (txDetails.action === "transfer") {
-    proofs[0] = {
+
+  if (txDetails[0].action === "transfer") {
+    proofs.push({
       token: txDetails[0].data.fromToken.address,
       chainId: txDetails[0].data.fromToken.chainId,
       from: txDetails[0].data.fromAddress,
       to: txDetails[0].data.toAddress,
       amount: txDetails[0].data.toAmount,
       tokenId: 0 // this field is for NFTs, which are not yet supported
-    }
-  } else if (txDetails.action === "swap") {
-    proofs[0] = {
+    });
+  } else if (txDetails[0].action === "swap") {
+    proofs.push({
       token: txDetails[0].data.fromToken.address,
       chainId: txDetails[0].data.fromToken.chainId,
       from: txDetails[0].data.fromAddress,
       to: txDetails[0].data.toAddress,
       amount: txDetails[0].data.toAmount,
       tokenId: 0 // this field is for NFTs, which are not yet supported
-    },
+    });
     // second proof is the bundler filling the other side of the swap based on market price
-    proofs[1] = {
-      token: txDetails[0].data.steps[0].toToken.address,
-      chainId: txDetails[0].data.steps[0].toToken.chainId,
+    proofs.push({
+      token: txDetails[0].data.toToken.address,
+      chainId: txDetails[0].data.toToken.chainId,
       from: BUNDLER_ADDRESS,
       to: txDetails[0].data.fromAddress,
-      amount: txDetails[0].data.steps[0].toAmount,
+      amount: txDetails[0].data.toAmount,
       tokenId: 0 // this field is for NFTs, which are not yet supported
-    }
+    });
+  } else {
+    console.error("Unexpected action:", txDetails.action);
   }
   
   const bundle = {

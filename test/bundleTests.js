@@ -172,6 +172,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
 
     const publishedBundles = await redis.zrange('cids', 0, -1);
     expect(publishedBundles).to.include(newCid.toString());
+    expect(newBundle.proofs[0].proof.length).to.equal(1);
   });
 
   afterEach(() => {
@@ -190,6 +191,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
 
     const publishedBundles = await redis.zrange('cids', 0, -1);
     expect(publishedBundles).to.include(newCid.toString());
+    expect(newBundle.proofs[0].proof.length).to.equal(2);
   });
 
   afterEach(() => {

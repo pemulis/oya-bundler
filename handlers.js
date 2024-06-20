@@ -179,7 +179,7 @@ async function handleIntention(intention, signature, from) {
       amount: txDetails[0].data.toAmount,
       tokenId: 0 // this field is for NFTs, which are not yet supported
     }
-  } else if (txDetails.action === "swap") {
+  } else {
     return txDetails;
   }
   

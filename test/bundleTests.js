@@ -41,7 +41,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     expiry: 2346265198,
     nonce: 2
   };
-  const proof = {
+  const bundle = {
         intention: intention,
         // proof below updates balances on the virtual chain, using locked assets
         // proof may require multiple virtual token transfers, but this has just one
@@ -55,7 +55,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
         }]
       };
   const bundleData = {
-    bundle: [proof],
+    bundle: [bundle],
     nonce: 42
   };
   const bundleCID = "bafkreicqc2ssny76w3cjiffmckfuvlbp4bjxflbtzfpik4niinmxnyjsne";

@@ -4,6 +4,7 @@ require('dotenv').config();
 const util = require('util');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 const { ethers } = require("ethers");
 const { Alchemy, Wallet } = require("alchemy-sdk");
 const redis = require('redis');
@@ -112,7 +113,7 @@ async function publishBundle(data, signature, from) {
   } catch (error) {
     console.error("Failed to add CID to Redis:", error);
   }
-45
+
   // Call the proposeBundle function on the contract
   try {
     const tx = await bundleTrackerContract.proposeBundle(cidToString);
@@ -122,6 +123,33 @@ async function publishBundle(data, signature, from) {
   } catch (error) {
     console.error("Failed to propose bundle:", error);
     throw new Error("Blockchain transaction failed");
+  }
+
+  // Send bundle data to Oya API
+  try {
+    await axios.post(`${OYA_API_BASE_URL}/bundle`, data, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error("Failed to send bundle data to Oya API:", error);
+    throw new Error("API request failed");
+  }
+
+  // Send CID and nonce to Oya API
+  try {
+    await axios.post(`${OYA_API_BASE_URL}/cid`, {
+      cid: cidToString,
+      nonce: data.nonce // need to do proper nonce handling
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error("Failed to send CID to Oya API:", error);
+    throw new Error("API request failed");
   }
   
   return cid;
@@ -211,7 +239,7 @@ async function handleIntention(intention, signature, from) {
         proof: proofs
       }
     ],
-    nonce: 0 // need to save this nonce somewhere
+    nonce: 1337 // need to do proper nonce handling
   };
 
   if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811") {

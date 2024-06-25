@@ -127,7 +127,7 @@ async function publishBundle(data, signature, from) {
 
   // Send bundle data to Oya API
   try {
-    await axios.post(`${OYA_API_BASE_URL}/bundle`, data, {
+    await axios.post(`${process.env.OYA_API_BASE_URL}/bundle`, data, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -139,7 +139,7 @@ async function publishBundle(data, signature, from) {
 
   // Send CID and nonce to Oya API
   try {
-    await axios.post(`${OYA_API_BASE_URL}/cid`, {
+    await axios.post(`${process.env.OYA_API_BASE_URL}/cid`, {
       cid: cidToString,
       nonce: data.nonce // need to do proper nonce handling
     }, {

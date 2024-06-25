@@ -46,7 +46,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
         // proof below updates balances on the virtual chain, using locked assets
         // proof may require multiple virtual token transfers, but this has just one
         proof: [{
-          token: 0x0000000000000000000000000000000000000000, // null address means ETH
+          token: "0x0000000000000000000000000000000000000000", // null address means ETH
           chainId: 1,
           from: accountHolderAddress,
           to: "alice.eth",
@@ -58,7 +58,7 @@ describe('Publish to IPFS and retrieve data from Redis', function() {
     bundle: [bundle],
     nonce: 42
   };
-  const bundleCID = "bafkreicqc2ssny76w3cjiffmckfuvlbp4bjxflbtzfpik4niinmxnyjsne";
+  const bundleCID = "bafkreid2jfyvawbqj3thmm44wow4uuwoztb6y4a7rpl3crtt2s26exqv3i";
   const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
   const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
 

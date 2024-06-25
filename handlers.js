@@ -205,11 +205,10 @@ async function handleIntention(intention, signature, from) {
     address: from,
   });
 
-  // Proof-of-concept: Build a bundle with virtual tx details and publish
-  const proofs = [];
+  const bundle = [];
 
   if (txDetails[0].action === "transfer") {
-    proofs.push({
+    bundle.push({
       token: txDetails[0].data.fromToken.address,
       chainId: txDetails[0].data.fromToken.chainId,
       from: txDetails[0].data.fromAddress,
@@ -218,7 +217,7 @@ async function handleIntention(intention, signature, from) {
       tokenId: 0 // this field is for NFTs, which are not yet supported
     });
   } else if (txDetails[0].action === "swap") {
-    proofs.push({
+    bundle.push({
       token: txDetails[0].data.fromToken.address,
       chainId: txDetails[0].data.fromToken.chainId,
       from: txDetails[0].data.fromAddress,
@@ -227,7 +226,7 @@ async function handleIntention(intention, signature, from) {
       tokenId: 0 // this field is for NFTs, which are not yet supported
     });
     // second proof is the bundler filling the other side of the swap based on market price
-    proofs.push({
+    bundle.push({
       token: txDetails[0].data.toToken.address,
       chainId: txDetails[0].data.toToken.chainId,
       from: BUNDLER_ADDRESS,
@@ -239,13 +238,13 @@ async function handleIntention(intention, signature, from) {
     console.error("Unexpected action:", txDetails.action);
   }
   
-  const bundle = {
-    proofs: [
+  const bundleObject = {
+    bundle: [
       {
         intention: intention,
         // proof below updates balances on the virtual chain, using locked assets
         // proof may require multiple virtual token transfers, but this has just one
-        proof: proofs
+        proof: bundle
       }
     ],
     nonce: 1337 // need to do proper nonce handling
@@ -255,10 +254,10 @@ async function handleIntention(intention, signature, from) {
     console.log("Intention sent by authorized live tester");
     // Publish the bundle to IPFS
     const bundlerSignature = await wallet.signMessage(JSON.stringify(bundle));
-    publishBundle(JSON.stringify(bundle), bundlerSignature, BUNDLER_ADDRESS);
+    publishBundle(JSON.stringify(bundleObject), bundlerSignature, BUNDLER_ADDRESS);
   }
   
-  return bundle;
+  return bundleObject;
 }
 
 

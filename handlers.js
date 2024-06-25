@@ -125,9 +125,18 @@ async function publishBundle(data, signature, from) {
     throw new Error("Blockchain transaction failed");
   }
 
+  // Parse the data to ensure it is valid JSON
+  let bundleData;
+  try {
+    bundleData = JSON.parse(data);
+  } catch (error) {
+    console.error("Failed to parse bundle data:", error);
+    throw new Error("Invalid bundle data");
+  }
+
   // Send bundle data to Oya API
   try {
-    await axios.post(`${process.env.OYA_API_BASE_URL}/bundle`, data, {
+    await axios.post(`${process.env.OYA_API_BASE_URL}/bundle`, bundleData, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -141,7 +150,7 @@ async function publishBundle(data, signature, from) {
   try {
     await axios.post(`${process.env.OYA_API_BASE_URL}/cid`, {
       cid: cidToString,
-      nonce: data.nonce // need to do proper nonce handling
+      nonce: bundleData.nonce // need to do proper nonce handling
     }, {
       headers: {
         'Content-Type': 'application/json'

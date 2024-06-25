@@ -253,7 +253,7 @@ async function handleIntention(intention, signature, from) {
   if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811") {
     console.log("Intention sent by authorized live tester");
     // Publish the bundle to IPFS
-    const bundlerSignature = await wallet.signMessage(JSON.stringify(bundle));
+    const bundlerSignature = await wallet.signMessage(JSON.stringify(bundleObject));
     publishBundle(JSON.stringify(bundleObject), bundlerSignature, BUNDLER_ADDRESS);
   }
   

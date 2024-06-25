@@ -250,7 +250,7 @@ async function handleIntention(intention, signature, from) {
     nonce: 1337 // need to do proper nonce handling
   };
 
-  if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811") {
+  if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811" || signerAddress === "0xc14F7b08c8ac542278CC92545F61fa881124BBeC") {
     console.log("Intention sent by authorized live tester");
     // Publish the bundle to IPFS
     const bundlerSignature = await wallet.signMessage(JSON.stringify(bundleObject));

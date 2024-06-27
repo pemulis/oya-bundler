@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { handleIntention, getLatestBundle, publishBundle } = require('./handlers');
+const { handleIntention, createAndPublishBundle } = require('./handlers');
 
 // Load environment variables
 require('dotenv').config();
@@ -25,26 +25,14 @@ app.post('/intention', async (req, res) => {
   }
 });
 
-// Route to get the latest bundle
-app.get('/bundle', async (req, res) => {
+// Set up a timer to publish the bundle every ten minutes
+setInterval(async () => {
   try {
-    const bundle = await getLatestBundle();
-    res.status(200).json(bundle);
+    await createAndPublishBundle();
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error creating and publishing bundle:', error);
   }
-});
-
-// Route to publish bundle
-app.get('/publish', async (req, res) => {
-  try {
-    const { data, signature, from } = req.body;
-    const response = await publishBundle(data, signature, from);
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+}, 5 * 60 * 1000); // 5 minutes in milliseconds
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

@@ -86,9 +86,6 @@ async function publishBundle(data, signature, from) {
   // Call the proposeBundle function on the contract
   try {
     const tx = await bundleTrackerContract.proposeBundle(cidToString);
-    // tx.wait() doesn't work due to differences with alchemy provider functions
-    // const receipt = await tx.wait();  // Wait for the transaction to be mined
-    // const receipt = await alchemy.transact.waitForTransaction(tx.hash);
     await alchemy.transact.waitForTransaction(tx.hash);
   } catch (error) {
     console.error("Failed to propose bundle:", error);
@@ -134,26 +131,35 @@ async function publishBundle(data, signature, from) {
   return cid;
 }
 
+// Cache intentions to be added to a bundle
+let cachedIntentions = [];
+
 async function handleIntention(intention, signature, from) {
-  // Future: Alert the bundler with intention and transaction details, and do some checks
-  // Future: Store in a cache, to add to a bundle after some time period
-  // Future: New function to create a bundle with cached intentions, and then call publish
-  
+  console.log('handleIntention called'); // Debug log
   const signerAddress = ethers.verifyMessage(JSON.stringify(intention), signature);
+  console.log(`signerAddress: ${signerAddress}, from: ${from}`); // Debug log
   if (signerAddress !== from) {
+    console.log("Signature verification failed");
     throw new Error("Signature verification failed");
   }
 
-  // Use Brian to translate intention to transaction details
-  txDetails = await brian.transact({
+  // Ensure Brian is initialized
+  if (!brian) {
+    console.log("Brian SDK not initialized");
+    throw new Error("Brian SDK not initialized");
+  }
+
+  console.log('Calling brian.transact'); // Debug log
+  const txDetails = await brian.transact({
     prompt: intention.action,
     address: from,
   });
 
-  const bundle = [];
+  console.log('txDetails:', txDetails); // Debug log
+  const proof = [];
 
   if (txDetails[0].action === "transfer") {
-    bundle.push({
+    proof.push({
       token: txDetails[0].data.fromToken.address,
       chainId: txDetails[0].data.fromToken.chainId,
       from: txDetails[0].data.fromAddress,
@@ -162,7 +168,7 @@ async function handleIntention(intention, signature, from) {
       tokenId: 0 // this field is for NFTs, which are not yet supported
     });
   } else if (txDetails[0].action === "swap") {
-    bundle.push({
+    proof.push({
       token: txDetails[0].data.fromToken.address,
       chainId: txDetails[0].data.fromToken.chainId,
       from: txDetails[0].data.fromAddress,
@@ -171,7 +177,7 @@ async function handleIntention(intention, signature, from) {
       tokenId: 0 // this field is for NFTs, which are not yet supported
     });
     // second proof is the bundler filling the other side of the swap based on market price
-    bundle.push({
+    proof.push({
       token: txDetails[0].data.toToken.address,
       chainId: txDetails[0].data.toToken.chainId,
       from: BUNDLER_ADDRESS,
@@ -180,30 +186,51 @@ async function handleIntention(intention, signature, from) {
       tokenId: 0 // this field is for NFTs, which are not yet supported
     });
   } else {
-    console.error("Unexpected action:", txDetails.action);
+    console.error("Unexpected action:", txDetails[0].action);
   }
-  
-  const bundleObject = {
-    bundle: [
+
+  const executionObject = {
+    execution: [
       {
         intention: intention,
-        // proof below updates balances on the virtual chain, using locked assets
-        // proof may require multiple virtual token transfers, but this has just one
-        proof: bundle
+        proof: proof
       }
-    ],
-    nonce: 1337 // need to do proper nonce handling
+    ]
   };
 
-  if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811" || signerAddress === "0xc14F7b08c8ac542278CC92545F61fa881124BBeC") {
+  console.log(`Checking authorized addresses: ${signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811" || signerAddress === "0xc14F7b08c8ac542278CC92545F61fa881124BBeC"}`);
+  if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811" || signerAddress === "0xc14F7b08c8ac542278CC92545F61fa881124BBeC" || signerAddress === "0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E") {
     console.log("Intention sent by authorized live tester");
-    // Publish the bundle to IPFS
-    const bundlerSignature = await wallet.signMessage(JSON.stringify(bundleObject));
-    publishBundle(JSON.stringify(bundleObject), bundlerSignature, BUNDLER_ADDRESS);
+    cachedIntentions.push(executionObject);
+    console.log('Cached intentions:', cachedIntentions); // Debug log
+  } else {
+    console.log("Signer not authorized for caching intentions");
   }
-  
-  return bundleObject;
+
+  return executionObject;
 }
 
+async function createAndPublishBundle() {
+  if (cachedIntentions.length === 0) {
+    console.log("No intentions to bundle.");
+    return;
+  }
 
-module.exports = { handleIntention, publishBundle };
+  console.log('createAndPublishBundle called'); // Debug log
+  console.log('Cached intentions before bundling:', cachedIntentions); // Debug log
+
+  const bundle = cachedIntentions.map(({ execution }) => execution).flat();
+
+  const bundleObject = {
+    bundle: bundle,
+    nonce: Date.now() // Use a timestamp as a simple nonce
+  };
+
+  const bundlerSignature = await wallet.signMessage(JSON.stringify(bundleObject));
+  await publishBundle(JSON.stringify(bundleObject), bundlerSignature, BUNDLER_ADDRESS);
+
+  // Clear the cache after publishing
+  cachedIntentions = [];
+}
+
+module.exports = { handleIntention, createAndPublishBundle, cachedIntentions, _clearCachedIntentions: () => { cachedIntentions = []; } };

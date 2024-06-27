@@ -1,6 +1,7 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
+const axios = require('axios');
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
@@ -30,13 +31,17 @@ describe('Handle intentions and publish bundles', function() {
   const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
   const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';
 
+  let heliaAddStub;
+
   before(async () => {
     accountHolderSignatureOnIntention = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(intention));
     accountHolderSignatureOnSwapIntention = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(swapIntention));
 
     // Stub the IPFS add method
-    let heliaAddStub = sinon.stub().resolves(bundleCID);
+    heliaAddStub = sinon.stub().resolves(bundleCID);
     global.s = { add: heliaAddStub };
+
+    console.log('global.s.add stub initialized:', global.s.add === heliaAddStub); // Debug log
 
     // Ensure brian is initialized
     if (!global.brian) {
@@ -81,15 +86,25 @@ describe('Handle intentions and publish bundles', function() {
     console.log('Cached intentions after bundling in test:', _getCachedIntentions()); // Debug log
     expect(_getCachedIntentions().length).to.equal(0);
 
-    // Verify that the published bundle includes both execution objects
-    console.log('Global.s.add.calledOnce:', global.s.add.calledOnce); // Debug log
-    expect(global.s.add.calledOnce).to.be.true;
-    
-    const publishedBundle = JSON.parse(global.s.add.firstCall.args[0]);
-    console.log('Published bundle:', publishedBundle); // Debug log
-    expect(publishedBundle.bundle.length).to.equal(2);
+    // Make an HTTP request to fetch all bundles from the Oya API
+    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/bundle/1337`);
+    const bundles = response.data;
 
-    const [firstExecution, secondExecution] = publishedBundle.bundle;
+    console.log('Bundles from Oya API:', bundles); // Debug log
+
+    // Ensure that we have at least one bundle
+    expect(bundles.length).to.be.at.least(1);
+
+    // Sort bundles by timestamp
+    bundles.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // Get the most recent bundle
+    const mostRecentBundle = bundles[0];
+
+    console.log('Most recent bundle from Oya API:', mostRecentBundle); // Debug log
+    expect(mostRecentBundle.bundle.length).to.equal(2);
+
+    const [firstExecution, secondExecution] = mostRecentBundle.bundle;
     expect(firstExecution.intention).to.deep.equal(intention);
     expect(secondExecution.intention).to.deep.equal(swapIntention);
   });

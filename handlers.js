@@ -71,6 +71,7 @@ const BUNDLER_ADDRESS = '0x42fA5d9E5b0B1c039b08853cF62f8E869e8E5bAf'; // for tes
 // Function to publish data to IPFS with signature validation
 async function publishBundle(data, signature, from) {
   await ensureHeliaSetup();  // Ensure Helia is ready before proceeding
+  console.log('publishBundle called'); // Debug log
   if (from !== BUNDLER_ADDRESS) {
     throw new Error("Unauthorized: Only the bundler can publish new bundles.");
   }
@@ -80,13 +81,16 @@ async function publishBundle(data, signature, from) {
     throw new Error("Signature verification failed");
   }
 
+  console.log('Publishing data to IPFS'); // Debug log
   const cid = await s.add(data);  // Ensure this is defined and accessible
   const cidToString = cid.toString();
+  console.log('Published to IPFS, CID:', cidToString); // Debug log
 
   // Call the proposeBundle function on the contract
   try {
     const tx = await bundleTrackerContract.proposeBundle(cidToString);
     await alchemy.transact.waitForTransaction(tx.hash);
+    console.log('Blockchain transaction successful'); // Debug log
   } catch (error) {
     console.error("Failed to propose bundle:", error);
     throw new Error("Blockchain transaction failed");
@@ -108,6 +112,7 @@ async function publishBundle(data, signature, from) {
         'Content-Type': 'application/json'
       }
     });
+    console.log('Bundle data sent to Oya API'); // Debug log
   } catch (error) {
     console.error("Failed to send bundle data to Oya API:", error);
     throw new Error("API request failed");
@@ -123,6 +128,7 @@ async function publishBundle(data, signature, from) {
         'Content-Type': 'application/json'
       }
     });
+    console.log('CID sent to Oya API'); // Debug log
   } catch (error) {
     console.error("Failed to send CID to Oya API:", error);
     throw new Error("API request failed");
@@ -130,6 +136,7 @@ async function publishBundle(data, signature, from) {
   
   return cid;
 }
+
 
 // Cache intentions to be added to a bundle
 let cachedIntentions = [];

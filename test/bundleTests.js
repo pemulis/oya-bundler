@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-const { handleIntention, createAndPublishBundle, cachedIntentions, _clearCachedIntentions } = require('../handlers');
+const { handleIntention, createAndPublishBundle, _getCachedIntentions, _clearCachedIntentions } = require('../handlers');
 const { Wallet } = require('ethers');
 
 describe('Handle intentions and publish bundles', function() {
@@ -63,30 +63,30 @@ describe('Handle intentions and publish bundles', function() {
   });
 
   it('should cache execution objects if account holder signature verification succeeds', async () => {
-    const authorizedTesterSignature = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(intention));
     await handleIntention(intention, accountHolderSignatureOnIntention, accountHolderAddress);
-    console.log('Cached intentions in test:', cachedIntentions); // Debug log
-    expect(cachedIntentions.length).to.equal(1);
-    expect(cachedIntentions[0].execution[0].intention).to.deep.equal(intention);
+    console.log('Cached intentions in test:', _getCachedIntentions()); // Debug log
+    expect(_getCachedIntentions().length).to.equal(1);
+    expect(_getCachedIntentions()[0].execution[0].intention).to.deep.equal(intention);
   });
 
   it('should create and publish a bundle with cached execution objects', async () => {
-    const accountHolderSignature1 = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(intention));
-    const accountHolderSignature2 = await new Wallet(accountHolderPrivateKey).signMessage(JSON.stringify(swapIntention));
     // Add both intentions to cache
-    await handleIntention(intention, accountHolderSignature1, accountHolderAddress);
-    await handleIntention(swapIntention, accountHolderSignature2, accountHolderAddress);
+    await handleIntention(intention, accountHolderSignatureOnIntention, accountHolderAddress);
+    await handleIntention(swapIntention, accountHolderSignatureOnSwapIntention, accountHolderAddress);
 
     // Manually trigger bundle creation and publishing
     await createAndPublishBundle();
 
     // Verify that the cache is empty after publishing
-    console.log('Cached intentions after bundling in test:', cachedIntentions); // Debug log
-    expect(cachedIntentions.length).to.equal(0);
+    console.log('Cached intentions after bundling in test:', _getCachedIntentions()); // Debug log
+    expect(_getCachedIntentions().length).to.equal(0);
 
     // Verify that the published bundle includes both execution objects
+    console.log('Global.s.add.calledOnce:', global.s.add.calledOnce); // Debug log
     expect(global.s.add.calledOnce).to.be.true;
+    
     const publishedBundle = JSON.parse(global.s.add.firstCall.args[0]);
+    console.log('Published bundle:', publishedBundle); // Debug log
     expect(publishedBundle.bundle.length).to.equal(2);
 
     const [firstExecution, secondExecution] = publishedBundle.bundle;

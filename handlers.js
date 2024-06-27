@@ -6,7 +6,6 @@ const path = require('path');
 const axios = require('axios');
 const { ethers } = require("ethers");
 const { Alchemy, Wallet } = require("alchemy-sdk");
-const redis = require('redis');
 
 const settings = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -46,29 +45,6 @@ let brian;
   }
 })();
 
-// Lazy-load redis client
-let client;
-
-// Allow testing environment to inject a mock Redis, or use a real one
-function setRedisClient(customClient) {
-  client = customClient;
-}
-
-// Initialize Redis client if REDIS_URL is available
-if (process.env.REDIS_URL) {
-  client = redis.createClient({
-    url: process.env.REDIS_URL
-  });
-
-  client.on('error', (err) => {
-    console.error('Redis Client Error', err);
-  });
-
-  client.connect().then(() => {
-    setRedisClient(client);
-  });
-}
-
 // Variables for Helia instances
 let createHelia, strings, s;
 
@@ -106,19 +82,14 @@ async function publishBundle(data, signature, from) {
 
   const cid = await s.add(data);  // Ensure this is defined and accessible
   const cidToString = cid.toString();
-  const timestamp = Date.now();
-  try {
-    await client.zadd('cids', timestamp, cidToString);
-  } catch (error) {
-    console.error("Failed to add CID to Redis:", error);
-  }
 
   // Call the proposeBundle function on the contract
   try {
     const tx = await bundleTrackerContract.proposeBundle(cidToString);
     // tx.wait() doesn't work due to differences with alchemy provider functions
     // const receipt = await tx.wait();  // Wait for the transaction to be mined
-    const receipt = await alchemy.transact.waitForTransaction(tx.hash);
+    // const receipt = await alchemy.transact.waitForTransaction(tx.hash);
+    await alchemy.transact.waitForTransaction(tx.hash);
   } catch (error) {
     console.error("Failed to propose bundle:", error);
     throw new Error("Blockchain transaction failed");
@@ -161,31 +132,6 @@ async function publishBundle(data, signature, from) {
   }
   
   return cid;
-}
-
-// Function to get the latest CID
-async function getLatestBundle() {
-  const result = await client.zrevrange('cids', 0, 0);
-  if (!result || result.length === 0) throw new Error("No bundles available");
-  return { ipfsPath: result[0] };
-}
-
-// Function to get CIDs in a specific timestamp range
-async function getCIDsByTimestamp(start, end) {
-  // Retrieve both the CIDs and their scores
-  const result = await client.zrangebyscore('cids', start, end, 'WITHSCORES');
-  if (!result || result.length === 0) throw new Error("No data found");
-
-  // Since the result array includes both the member and the score interleaved,
-  // we need to process them in pairs.
-  const cidsWithTimestamps = [];
-  for (let i = 0; i < result.length; i += 2) {
-    const cid = result[i];
-    const timestamp = parseInt(result[i + 1], 10);
-    cidsWithTimestamps.push({ timestamp, ipfsPath: cid });
-  }
-
-  return cidsWithTimestamps;
 }
 
 async function handleIntention(intention, signature, from) {
@@ -260,4 +206,4 @@ async function handleIntention(intention, signature, from) {
 }
 
 
-module.exports = { handleIntention, getLatestBundle, publishBundle, setRedisClient, getCIDsByTimestamp };
+module.exports = { handleIntention, publishBundle };

@@ -217,6 +217,23 @@ async function handleIntention(intention, signature, from) {
   return executionObject;
 }
 
+// Function to get the latest nonce from the Oya API
+async function getLatestNonce() {
+  try {
+    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/bundle`);
+    const bundles = response.data;
+
+    if (bundles.length === 0) {
+      return 0;
+    }
+
+    return bundles[0].nonce + 1;
+  } catch (error) {
+    console.error("Failed to fetch bundles from Oya API:", error);
+    throw new Error("API request failed");
+  }
+}
+
 async function createAndPublishBundle() {
   if (cachedIntentions.length === 0) {
     console.log("No intentions to bundle.");
@@ -226,11 +243,20 @@ async function createAndPublishBundle() {
   console.log('createAndPublishBundle called'); // Debug log
   console.log('Cached intentions before bundling:', cachedIntentions); // Debug log
 
+  // Get the latest nonce
+  let nonce;
+  try {
+    nonce = await getLatestNonce();
+  } catch (error) {
+    console.error("Failed to get latest nonce:", error);
+    return;
+  }
+
   const bundle = cachedIntentions.map(({ execution }) => execution).flat();
 
   const bundleObject = {
     bundle: bundle,
-    nonce: 1337 // hardcoded nonce, let's fix this later
+    nonce: nonce // dynamically fetched nonce
   };
 
   const bundlerSignature = await wallet.signMessage(JSON.stringify(bundleObject));

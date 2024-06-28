@@ -83,7 +83,7 @@ describe('Handle intentions and publish bundles', function() {
     expect(_getCachedIntentions().length).to.equal(0);
 
     // Make an HTTP request to fetch all bundles from the Oya API
-    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/bundle/1337`);
+    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/bundle/`);
     const bundles = response.data;
 
     // Ensure that we have at least one bundle

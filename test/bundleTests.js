@@ -41,8 +41,6 @@ describe('Handle intentions and publish bundles', function() {
     heliaAddStub = sinon.stub().resolves(bundleCID);
     global.s = { add: heliaAddStub };
 
-    console.log('global.s.add stub initialized:', global.s.add === heliaAddStub); // Debug log
-
     // Ensure brian is initialized
     if (!global.brian) {
       const { BrianSDK } = await import('@brian-ai/sdk');
@@ -69,7 +67,6 @@ describe('Handle intentions and publish bundles', function() {
 
   it('should cache execution objects if account holder signature verification succeeds', async () => {
     await handleIntention(intention, accountHolderSignatureOnIntention, accountHolderAddress);
-    console.log('Cached intentions in test:', _getCachedIntentions()); // Debug log
     expect(_getCachedIntentions().length).to.equal(1);
     expect(_getCachedIntentions()[0].execution[0].intention).to.deep.equal(intention);
   });
@@ -83,14 +80,11 @@ describe('Handle intentions and publish bundles', function() {
     await createAndPublishBundle();
 
     // Verify that the cache is empty after publishing
-    console.log('Cached intentions after bundling in test:', _getCachedIntentions()); // Debug log
     expect(_getCachedIntentions().length).to.equal(0);
 
     // Make an HTTP request to fetch all bundles from the Oya API
     const response = await axios.get(`${process.env.OYA_API_BASE_URL}/bundle/1337`);
     const bundles = response.data;
-
-    console.log('Bundles from Oya API:', bundles); // Debug log
 
     // Ensure that we have at least one bundle
     expect(bundles.length).to.be.at.least(1);
@@ -101,7 +95,6 @@ describe('Handle intentions and publish bundles', function() {
     // Get the most recent bundle
     const mostRecentBundle = bundles[0];
 
-    console.log('Most recent bundle from Oya API:', mostRecentBundle); // Debug log
     expect(mostRecentBundle.bundle.length).to.equal(2);
 
     const [firstExecution, secondExecution] = mostRecentBundle.bundle;

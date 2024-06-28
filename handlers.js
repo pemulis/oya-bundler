@@ -222,6 +222,7 @@ async function getLatestNonce() {
   try {
     const response = await axios.get(`${process.env.OYA_API_BASE_URL}/bundle`);
     const bundles = response.data;
+    console.log('Bundles:', bundles); // Debug log
 
     if (bundles.length === 0) {
       return 0;

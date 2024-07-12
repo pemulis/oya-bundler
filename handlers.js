@@ -205,16 +205,9 @@ async function handleIntention(intention, signature, from) {
     ]
   };
 
-  // console.log(`Checking authorized addresses: ${signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811" || signerAddress === "0xc14F7b08c8ac542278CC92545F61fa881124BBeC" || signerAddress === "0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E"}`);
-  // if (signerAddress === "0x0B42AA7409a9712005dB492945855C176d9C2811" || 
-    // signerAddress === "0xc14F7b08c8ac542278CC92545F61fa881124BBeC" || 
-    // signerAddress === "0x3526e4f3E4EC41E7Ff7743F986FCEBd3173F657E") {
-    console.log("Intention sent by authorized live tester");
-    cachedIntentions.push(executionObject);
-    console.log('Cached intentions:', cachedIntentions); // Debug log
-  // } else {
-  //   console.log("Signer not authorized for caching intentions");
-  // }
+  console.log("Intention sent by live tester");
+  cachedIntentions.push(executionObject);
+  console.log('Cached intentions:', cachedIntentions); // Debug log
 
   return executionObject;
 }

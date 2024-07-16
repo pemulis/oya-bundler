@@ -27,6 +27,9 @@ describe('Handle intentions and publish bundles', function() {
     expiry: 2346265198,
     nonce: 2
   };
+  const lendIntention = {
+    action: "Lend 1 ETH to Oya",
+  }
   const bundleCID = "bafkreid2jfyvawbqj3thmm44wow4uuwoztb6y4a7rpl3crtt2s26exqv3i";
   const bundlerPrivateKey = '5267abf88fb9cf13333eb73ae7c06fa06d2580fd70324b116bf4fa2a3a5f431b'; // Only used for testing
   const accountHolderPrivateKey = '1a7237e38d7f2c46c8593b72e17f830d69fc0ac4661025cf8d4242973769afed';

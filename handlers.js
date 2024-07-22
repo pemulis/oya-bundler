@@ -179,7 +179,7 @@ async function updateBalances(from, to, token, amount) {
     await initializeAccount(to);
 
     // Update balances for 'from' account
-    await axios.post(`${process.env.OYA_API_BASE_URL}/updateBalance`, {
+    await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: from,
       token: token,
       balance: -amount
@@ -190,7 +190,7 @@ async function updateBalances(from, to, token, amount) {
     });
 
     // Update balances for 'to' account
-    await axios.post(`${process.env.OYA_API_BASE_URL}/updateBalance`, {
+    await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: to,
       token: token,
       balance: amount
@@ -209,8 +209,7 @@ async function updateBalances(from, to, token, amount) {
 
 async function initializeAccount(account) {
   try {
-    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/getBalanceForAllTokens`, {
-      params: { account: account },
+    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${account}`, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -221,7 +220,7 @@ async function initializeAccount(account) {
       console.log(`Initializing account ${account} with test tokens`);
 
       for (const token of supportedTokens) {
-        await axios.post(`${process.env.OYA_API_BASE_URL}/updateBalance`, {
+        await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
           account: account,
           token: token,
           balance: initialBalance

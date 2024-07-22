@@ -105,6 +105,19 @@ async function publishBundle(data, signature, from) {
     throw new Error("Invalid bundle data");
   }
 
+  // Process balance updates
+  try {
+    for (const execution of bundleData.execution) {
+      for (const proof of execution.proof) {
+        await updateBalances(proof.from, proof.to, proof.token, proof.amount);
+      }
+    }
+    console.log('Balances updated successfully'); // Debug log
+  } catch (error) {
+    console.error("Failed to update balances:", error);
+    throw new Error("Balance update failed");
+  }
+
   // Send bundle data to Oya API
   try {
     await axios.post(`${process.env.OYA_API_BASE_URL}/bundle`, bundleData, {
@@ -133,10 +146,38 @@ async function publishBundle(data, signature, from) {
     console.error("Failed to send CID to Oya API:", error);
     throw new Error("API request failed");
   }
-  
+
   return cid;
 }
 
+async function updateBalances(from, to, token, amount) {
+  try {
+    await axios.post(`${process.env.OYA_API_BASE_URL}/updateBalance`, {
+      account: from,
+      token: token,
+      balance: -amount
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    await axios.post(`${process.env.OYA_API_BASE_URL}/updateBalance`, {
+      account: to,
+      token: token,
+      balance: amount
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log(`Balances updated: from ${from} to ${to} for token ${token} amount ${amount}`);
+  } catch (error) {
+    console.error("Failed to update balances:", error);
+    throw new Error("Balance update failed");
+  }
+}
 
 // Cache intentions to be added to a bundle
 let cachedIntentions = [];

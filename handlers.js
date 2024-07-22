@@ -107,7 +107,7 @@ async function publishBundle(data, signature, from) {
   }
 
   // Check the structure of bundleData
-  if (!Array.isArray(bundleData.execution)) {
+  if (!Array.isArray(bundleData.bundle)) {
     console.error("Invalid bundle data structure:", bundleData);
     throw new Error("Invalid bundle data structure");
   }
@@ -143,7 +143,7 @@ async function publishBundle(data, signature, from) {
 
   // Process balance updates
   try {
-    for (const execution of bundleData.execution) {
+    for (const execution of bundleData.bundle) { // Reference 'bundle' instead of 'execution'
       if (!Array.isArray(execution.proof)) {
         console.error("Invalid proof structure in execution:", execution);
         throw new Error("Invalid proof structure");
@@ -160,6 +160,7 @@ async function publishBundle(data, signature, from) {
 
   return cid;
 }
+
 
 const supportedTokens = [
   "0x0000000000000000000000000000000000000000", // raw ETH

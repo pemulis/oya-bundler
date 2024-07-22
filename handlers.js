@@ -100,22 +100,16 @@ async function publishBundle(data, signature, from) {
   let bundleData;
   try {
     bundleData = JSON.parse(data);
+    console.log('Parsed bundle data:', bundleData); // Debug log
   } catch (error) {
     console.error("Failed to parse bundle data:", error);
     throw new Error("Invalid bundle data");
   }
 
-  // Process balance updates
-  try {
-    for (const execution of bundleData.execution) {
-      for (const proof of execution.proof) {
-        await updateBalances(proof.from, proof.to, proof.token, proof.amount);
-      }
-    }
-    console.log('Balances updated successfully'); // Debug log
-  } catch (error) {
-    console.error("Failed to update balances:", error);
-    throw new Error("Balance update failed");
+  // Check the structure of bundleData
+  if (!Array.isArray(bundleData.execution)) {
+    console.error("Invalid bundle data structure:", bundleData);
+    throw new Error("Invalid bundle data structure");
   }
 
   // Send bundle data to Oya API
@@ -145,6 +139,23 @@ async function publishBundle(data, signature, from) {
   } catch (error) {
     console.error("Failed to send CID to Oya API:", error);
     throw new Error("API request failed");
+  }
+
+  // Process balance updates
+  try {
+    for (const execution of bundleData.execution) {
+      if (!Array.isArray(execution.proof)) {
+        console.error("Invalid proof structure in execution:", execution);
+        throw new Error("Invalid proof structure");
+      }
+      for (const proof of execution.proof) {
+        await updateBalances(proof.from, proof.to, proof.token, proof.amount);
+      }
+    }
+    console.log('Balances updated successfully'); // Debug log
+  } catch (error) {
+    console.error("Failed to update balances:", error);
+    throw new Error("Balance update failed");
   }
 
   return cid;

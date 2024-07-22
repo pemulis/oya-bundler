@@ -32,7 +32,7 @@ setInterval(async () => {
   } catch (error) {
     console.error('Error creating and publishing bundle:', error);
   }
-}, 5 * 60 * 1000); // 5 minutes in milliseconds
+}, 1 * 60 * 1000); // 1 minute in milliseconds
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

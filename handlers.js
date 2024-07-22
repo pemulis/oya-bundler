@@ -150,8 +150,24 @@ async function publishBundle(data, signature, from) {
   return cid;
 }
 
+const supportedTokens = [
+  "0x0000000000000000000000000000000000000000", // raw ETH
+  "0x0000000000000000000000000000000000000001", // OYA placeholder
+  "0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828", // UMA
+  "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH
+  "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
+  "0x6B175474E89094C44Da98b954EedeAC495271d0F" // DAI
+];
+const initialBalance = 1000000; // Initial token balance to assign to new accounts
+
 async function updateBalances(from, to, token, amount) {
   try {
+    // Check if 'from' account needs initialization
+    await initializeAccount(from);
+    // Check if 'to' account needs initialization
+    await initializeAccount(to);
+
+    // Update balances for 'from' account
     await axios.post(`${process.env.OYA_API_BASE_URL}/updateBalance`, {
       account: from,
       token: token,
@@ -162,6 +178,7 @@ async function updateBalances(from, to, token, amount) {
       }
     });
 
+    // Update balances for 'to' account
     await axios.post(`${process.env.OYA_API_BASE_URL}/updateBalance`, {
       account: to,
       token: token,
@@ -176,6 +193,39 @@ async function updateBalances(from, to, token, amount) {
   } catch (error) {
     console.error("Failed to update balances:", error);
     throw new Error("Balance update failed");
+  }
+}
+
+async function initializeAccount(account) {
+  try {
+    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/getBalanceForAllTokens`, {
+      params: { account: account },
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // If the account is not found, initialize it with test tokens
+    if (response.data.length === 0) {
+      console.log(`Initializing account ${account} with test tokens`);
+
+      for (const token of supportedTokens) {
+        await axios.post(`${process.env.OYA_API_BASE_URL}/updateBalance`, {
+          account: account,
+          token: token,
+          balance: initialBalance
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+
+      console.log(`Account ${account} initialized with test tokens`);
+    }
+  } catch (error) {
+    console.error(`Failed to initialize account ${account}:`, error);
+    throw new Error("Account initialization failed");
   }
 }
 

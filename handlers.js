@@ -170,8 +170,6 @@ const supportedTokens = [
   "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
   "0x6B175474E89094C44Da98b954EedeAC495271d0F" // DAI
 ];
-// Initial token balance to assign to new accounts, to 18 decimal places
-const initialBalance = 1000000 * 10^18;
 
 async function updateBalances(from, to, token, amount) {
   try {
@@ -239,6 +237,7 @@ async function initializeAccount(account) {
     // If the account is not found, initialize it with test tokens
     if (response.data.length === 0) {
       console.log(`Initializing account ${account} with test tokens`);
+      const initialBalance = 1000000 * 10 ** 18; // 1,000,000 tokens with 18 decimals
 
       for (const token of supportedTokens) {
         await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {

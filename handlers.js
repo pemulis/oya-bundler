@@ -175,6 +175,11 @@ const initialBalance = 1000000 * 10^18;
 
 async function updateBalances(from, to, token, amount) {
   try {
+    // Check if 'from' account needs initialization
+    await initializeAccount(from);
+    // Check if 'to' account needs initialization
+    await initializeAccount(to);
+
     // Update balances for 'from' account
     const fromUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: from,

@@ -161,16 +161,6 @@ async function publishBundle(data, signature, from) {
   return cid;
 }
 
-
-const supportedTokens = [
-  "0x0000000000000000000000000000000000000000", // raw ETH
-  "0x0000000000000000000000000000000000000001", // OYA placeholder
-  "0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828", // UMA
-  "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH
-  "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
-  "0x6B175474E89094C44Da98b954EedeAC495271d0F" // DAI
-];
-
 async function updateBalances(from, to, token, amount) {
   try {
     // Ensure the accounts are initialized
@@ -241,13 +231,36 @@ async function initializeAccount(account) {
     // If the account is not found, initialize it with test tokens
     if (response.data.length === 0) {
       console.log(`Initializing account ${account} with test tokens`);
-      const initialBalance = 10000 * 10 ** 18; // 10,000 tokens with 18 decimals
+      const initialBalance18 = 10000 * 10 ** 18; // 10,000 tokens with 18 decimals
+      const initialBalance6 = 1000000 * 10 ** 6; // 1,000,000 tokens with 6 decimals
 
-      for (const token of supportedTokens) {
+      const supportedTokens18 = [
+        "0x0000000000000000000000000000000000000000", // raw ETH
+        "0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828", // UMA
+        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH
+        "0x6B175474E89094C44Da98b954EedeAC495271d0F" // DAI
+      ];
+      const supportedTokens6 = [
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" // USDC
+      ];
+
+      for (const token of supportedTokens18) {
         await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
           account: account,
           token: token,
-          balance: initialBalance
+          balance: initialBalance18
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+
+      for (const token of supportedTokens6) {
+        await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
+          account: account,
+          token: token,
+          balance: initialBalance6
         }, {
           headers: {
             'Content-Type': 'application/json'

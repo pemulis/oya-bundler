@@ -237,7 +237,7 @@ async function initializeAccount(account) {
     // If the account is not found, initialize it with test tokens
     if (response.data.length === 0) {
       console.log(`Initializing account ${account} with test tokens`);
-      const initialBalance = 1000000 * 10 ** 18; // 1,000,000 tokens with 18 decimals
+      const initialBalance = 10000 * 10 ** 18; // 10,000 tokens with 18 decimals
 
       for (const token of supportedTokens) {
         await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {

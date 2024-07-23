@@ -195,11 +195,15 @@ async function updateBalances(from, to, token, amount) {
     const toBalance = toResponse.data.length > 0 ? parseFloat(toResponse.data[0].balance) : 0;
     console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
+    // Calculate new balances
+    const newFromBalance = fromBalance - amount;
+    const newToBalance = toBalance + amount;
+
     // Update balances for 'from' account
     const fromUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: from,
       token: token,
-      balance: fromBalance - amount
+      balance: newFromBalance
     }, {
       headers: {
         'Content-Type': 'application/json'
@@ -211,7 +215,7 @@ async function updateBalances(from, to, token, amount) {
     const toUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: to,
       token: token,
-      balance: toBalance + amount
+      balance: newToBalance
     }, {
       headers: {
         'Content-Type': 'application/json'

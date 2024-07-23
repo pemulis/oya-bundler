@@ -175,16 +175,33 @@ const initialBalance = 1000000 * 10^18;
 
 async function updateBalances(from, to, token, amount) {
   try {
-    // Check if 'from' account needs initialization
+    // Ensure the accounts are initialized
     await initializeAccount(from);
-    // Check if 'to' account needs initialization
     await initializeAccount(to);
+
+    // Retrieve the current balance for 'from' account
+    const fromResponse = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${from}/${token}`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const fromBalance = fromResponse.data.length > 0 ? parseFloat(fromResponse.data[0].balance) : 0;
+    console.log(`Current balance for from account (${from}): ${fromBalance}`); // Debug log
+
+    // Retrieve the current balance for 'to' account
+    const toResponse = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${to}/${token}`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const toBalance = toResponse.data.length > 0 ? parseFloat(toResponse.data[0].balance) : 0;
+    console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
     // Update balances for 'from' account
     const fromUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: from,
       token: token,
-      balance: -amount
+      balance: fromBalance - amount
     }, {
       headers: {
         'Content-Type': 'application/json'
@@ -196,7 +213,7 @@ async function updateBalances(from, to, token, amount) {
     const toUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: to,
       token: token,
-      balance: amount
+      balance: toBalance + amount
     }, {
       headers: {
         'Content-Type': 'application/json'

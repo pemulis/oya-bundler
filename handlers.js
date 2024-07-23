@@ -175,13 +175,8 @@ const initialBalance = 1000000 * 10^18;
 
 async function updateBalances(from, to, token, amount) {
   try {
-    // Check if 'from' account needs initialization
-    await initializeAccount(from);
-    // Check if 'to' account needs initialization
-    await initializeAccount(to);
-
     // Update balances for 'from' account
-    await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
+    const fromUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: from,
       token: token,
       balance: -amount
@@ -190,9 +185,10 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
+    console.log(`From account update response: ${JSON.stringify(fromUpdateResponse.data)}`); // Debug log
 
     // Update balances for 'to' account
-    await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
+    const toUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
       account: to,
       token: token,
       balance: amount
@@ -201,6 +197,7 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
+    console.log(`To account update response: ${JSON.stringify(toUpdateResponse.data)}`); // Debug log
 
     console.log(`Balances updated: from ${from} to ${to} for token ${token} amount ${amount}`);
   } catch (error) {

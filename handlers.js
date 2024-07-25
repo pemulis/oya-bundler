@@ -185,9 +185,9 @@ async function updateBalances(from, to, token, amount) {
     let toBalance = toResponse.data.length > 0 ? toResponse.data[0].balance : '0';
     console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
-    // Convert balances to strings without exponential notation if needed
-    fromBalance = fromBalance.toLocaleString('fullwide', { useGrouping: false });
-    toBalance = toBalance.toLocaleString('fullwide', { useGrouping: false });
+    // Convert balances to strings without exponential notation
+    fromBalance = BigInt(fromBalance).toString();
+    toBalance = BigInt(toBalance).toString();
 
     // Convert balances to BigInt
     const fromBalanceBigInt = BigInt(fromBalance);

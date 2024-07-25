@@ -173,7 +173,7 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
-    const fromBalance = fromResponse.data.length > 0 ? fromResponse.data[0].balance : 0;
+    const fromBalance = fromResponse.data.length > 0 ? fromResponse.data[0].balance : 0n;
     console.log(`Current balance for from account (${from}): ${fromBalance}`); // Debug log
 
     // Retrieve the current balance for 'to' account
@@ -182,12 +182,17 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
-    const toBalance = toResponse.data.length > 0 ? toResponse.data[0].balance : 0;
+    const toBalance = toResponse.data.length > 0 ? toResponse.data[0].balance : 0n;
     console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
     // Calculate new balances
     const newFromBalance = BigInt(fromBalance) - BigInt(amount);
     const newToBalance = BigInt(toBalance) + BigInt(amount);
+
+    // Ensure newFromBalance is not negative
+    if (newFromBalance < 0n) {
+      throw new Error('Insufficient balance in from account');
+    }
 
     // Update balances for 'from' account
     const fromUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {

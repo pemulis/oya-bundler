@@ -200,8 +200,8 @@ async function updateBalances(from, to, token, amount) {
     console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
     // Convert balances to BigInt directly from the string representation
-    const fromBalanceBigInt = BigInt(fromBalance.toString());
-    const toBalanceBigInt = BigInt(toBalance.toString());
+    const fromBalanceBigInt = convertToBigInt(fromBalance.toString());
+    const toBalanceBigInt = convertToBigInt(toBalance.toString());
 
     // Convert the amount to BigInt, handling exponential form if necessary
     const amountBigInt = convertToBigInt(amount);

@@ -161,6 +161,20 @@ async function publishBundle(data, signature, from) {
   return cid;
 }
 
+function convertToBigInt(amount) {
+  if (amount.includes('e+')) {
+    // Convert exponential form to BigInt
+    const [mantissa, exponent] = amount.split('e+');
+    const bigIntMantissa = BigInt(mantissa.replace('.', ''));
+    const bigIntExponent = BigInt(exponent);
+    const bigIntValue = bigIntMantissa * (10n ** bigIntExponent);
+    return bigIntValue;
+  } else {
+    // Handle as regular BigInt
+    return BigInt(amount);
+  }
+}
+
 async function updateBalances(from, to, token, amount) {
   try {
     // Ensure the accounts are initialized
@@ -188,7 +202,9 @@ async function updateBalances(from, to, token, amount) {
     // Convert balances to BigInt directly from the string representation
     const fromBalanceBigInt = BigInt(fromBalance.toString());
     const toBalanceBigInt = BigInt(toBalance.toString());
-    const amountBigInt = BigInt(amount.toString());
+
+    // Convert the amount to BigInt, handling exponential form if necessary
+    const amountBigInt = convertToBigInt(amount);
 
     // Calculate new balances
     const newFromBalance = fromBalanceBigInt - amountBigInt;

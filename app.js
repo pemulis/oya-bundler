@@ -25,14 +25,14 @@ app.post('/intention', async (req, res) => {
   }
 });
 
-// Set up a timer to publish the bundle every ten minutes
+// Set up a timer to publish the bundle every thirty seconds if there are cached intentions
 setInterval(async () => {
   try {
     await createAndPublishBundle();
   } catch (error) {
     console.error('Error creating and publishing bundle:', error);
   }
-}, 1 * 60 * 1000); // 1 minute in milliseconds
+}, 1 * 30 * 1000); // 30 seconds in milliseconds
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

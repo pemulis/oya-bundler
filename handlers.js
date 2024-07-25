@@ -161,20 +161,6 @@ async function publishBundle(data, signature, from) {
   return cid;
 }
 
-function convertToBigInt(amount) {
-  if (amount.includes('e+')) {
-    // Convert exponential form to BigInt
-    const [mantissa, exponent] = amount.split('e+');
-    const bigIntMantissa = BigInt(mantissa.replace('.', ''));
-    const bigIntExponent = BigInt(exponent);
-    const bigIntValue = bigIntMantissa * (10n ** bigIntExponent);
-    return bigIntValue;
-  } else {
-    // Handle as regular BigInt
-    return BigInt(amount);
-  }
-}
-
 async function updateBalances(from, to, token, amount) {
   try {
     // Ensure the accounts are initialized
@@ -199,11 +185,9 @@ async function updateBalances(from, to, token, amount) {
     let toBalance = toResponse.data.length > 0 ? toResponse.data[0].balance : '0';
     console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
-    // Convert balances to BigInt directly from the string representation
-    const fromBalanceBigInt = convertToBigInt(fromBalance.toString());
-    const toBalanceBigInt = convertToBigInt(toBalance.toString());
-
-    // Convert the amount to BigInt, handling exponential form if necessary
+    // Convert balances and amount to BigInt
+    const fromBalanceBigInt = convertToBigInt(fromBalance);
+    const toBalanceBigInt = convertToBigInt(toBalance);
     const amountBigInt = convertToBigInt(amount);
 
     // Calculate new balances
@@ -214,6 +198,9 @@ async function updateBalances(from, to, token, amount) {
     if (newFromBalance < 0n) {
       throw new Error('Insufficient balance in from account');
     }
+
+    console.log(`New balance for from account (${from}): ${newFromBalance}`); // Debug log
+    console.log(`New balance for to account (${to}): ${newToBalance}`); // Debug log
 
     // Update balances for 'from' account
     const fromUpdateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
@@ -243,6 +230,20 @@ async function updateBalances(from, to, token, amount) {
   } catch (error) {
     console.error("Failed to update balances:", error);
     throw new Error("Balance update failed");
+  }
+}
+
+function convertToBigInt(amount) {
+  if (amount.includes('e+')) {
+    // Convert exponential form to BigInt
+    const [mantissa, exponent] = amount.split('e+');
+    const bigIntMantissa = BigInt(mantissa.replace('.', ''));
+    const bigIntExponent = BigInt(exponent);
+    const bigIntValue = bigIntMantissa * (10n ** bigIntExponent);
+    return bigIntValue;
+  } else {
+    // Handle as regular BigInt
+    return BigInt(amount);
   }
 }
 

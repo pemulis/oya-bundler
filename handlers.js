@@ -167,13 +167,16 @@ async function updateBalances(from, to, token, amount) {
     await initializeAccount(from);
     await initializeAccount(to);
 
+    // Convert amount to BigInt
+    amount = convertToBigInt(amount);
+
     // Retrieve the current balance for 'from' account
     const fromResponse = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${from}/${token}`, {
       headers: {
         'Content-Type': 'application/json'
       }
     });
-    let fromBalance = fromResponse.data.length > 0 ? fromResponse.data[0].balance : '0';
+    let fromBalance = fromResponse.data.length > 0 ? convertToBigInt(fromResponse.data[0].balance) : '0';
     console.log(`Current balance for from account (${from}): ${fromBalance}`); // Debug log
 
     // Retrieve the current balance for 'to' account
@@ -182,17 +185,12 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
-    let toBalance = toResponse.data.length > 0 ? toResponse.data[0].balance : '0';
+    let toBalance = toResponse.data.length > 0 ? convertToBigInt(toResponse.data[0].balance) : '0';
     console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
-    // Convert balances and amount to BigInt
-    const fromBalanceBigInt = convertToBigInt(fromBalance);
-    const toBalanceBigInt = convertToBigInt(toBalance);
-    const amountBigInt = convertToBigInt(amount);
-
     // Calculate new balances
-    const newFromBalance = fromBalanceBigInt - amountBigInt;
-    const newToBalance = toBalanceBigInt + amountBigInt;
+    const newFromBalance = fromBalance - amount;
+    const newToBalance = toBalance + amount;
 
     // Ensure newFromBalance is not negative
     if (newFromBalance < 0n) {
@@ -446,7 +444,12 @@ async function createAndPublishBundle() {
   };
 
   const bundlerSignature = await wallet.signMessage(JSON.stringify(bundleObject));
-  await publishBundle(JSON.stringify(bundleObject), bundlerSignature, BUNDLER_ADDRESS);
+  try {
+    await publishBundle(JSON.stringify(bundleObject), bundlerSignature, BUNDLER_ADDRESS);
+  } catch (error) {
+    console.error("Failed to publish bundle:", error);
+    return;
+  }
 
   // Clear the cache after publishing
   cachedIntentions = [];

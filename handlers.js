@@ -173,7 +173,7 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
-    const fromBalance = fromResponse.data.length > 0 ? fromResponse.data[0].balance : 0n;
+    const fromBalance = fromResponse.data.length > 0 ? fromResponse.data[0].balance : '0';
     console.log(`Current balance for from account (${from}): ${fromBalance}`); // Debug log
 
     // Retrieve the current balance for 'to' account
@@ -182,12 +182,17 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
-    const toBalance = toResponse.data.length > 0 ? toResponse.data[0].balance : 0n;
+    const toBalance = toResponse.data.length > 0 ? toResponse.data[0].balance : '0';
     console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
+    // Convert balances to BigInt
+    const fromBalanceBigInt = BigInt(fromBalance);
+    const toBalanceBigInt = BigInt(toBalance);
+    const amountBigInt = BigInt(amount);
+
     // Calculate new balances
-    const newFromBalance = BigInt(fromBalance) - BigInt(amount);
-    const newToBalance = BigInt(toBalance) + BigInt(amount);
+    const newFromBalance = fromBalanceBigInt - amountBigInt;
+    const newToBalance = toBalanceBigInt + amountBigInt;
 
     // Ensure newFromBalance is not negative
     if (newFromBalance < 0n) {

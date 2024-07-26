@@ -471,16 +471,25 @@ async function mintRewards(addresses) {
       await initializeAccount(address);
 
       // Retrieve the current balance for the address
-      const response = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${address}/${OYA_TOKEN_ADDRESS}`, {
-        headers: {
-          'Content-Type': 'application/json'
+      let currentBalance;
+      try {
+        const response = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${address}/${OYA_TOKEN_ADDRESS}`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        currentBalance = response.data.length > 0 ? convertToBigInt(response.data[0].balance) : BigInt(0);
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          // If the balance is not found, initialize it with 0
+          currentBalance = BigInt(0);
+        } else {
+          throw error;
         }
-      });
-      let currentBalance = response.data.length > 0 ? convertToBigInt(response.data[0].balance) : BigInt(0);
+      }
 
       // Mint 1 Oya token (assume 18 decimals)
-      const rewardAmount = BigInt(1) * BigInt(10 ** 18);
-      const newBalance = currentBalance + rewardAmount;
+      const newBalance = currentBalance + OYA_REWARD_AMOUNT;
 
       // Update balance for the address
       const updateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {

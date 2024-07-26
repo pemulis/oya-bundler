@@ -29,6 +29,9 @@ const bundleTrackerContract = new ethers.Contract(contractAddress, contractABI, 
 
 let brian;
 
+const OYA_TOKEN_ADDRESS = "0x000000000000000001"; // Oya token address placeholder
+const OYA_REWARD_AMOUNT = BigInt(1 * 10 ** 18); // 1 Oya token with 18 decimals
+
 (async () => {
   try {
     const { BrianSDK } = await import('@brian-ai/sdk');
@@ -152,7 +155,13 @@ async function publishBundle(data, signature, from) {
         await updateBalances(proof.from, proof.to, proof.token, proof.amount);
       }
     }
-    console.log('Balances updated successfully'); // Debug log
+
+    // Process rewards
+    for (const reward of bundleData.rewards) {
+      await updateBalances(BUNDLER_ADDRESS, reward.account, reward.token, reward.amount);
+    }
+
+    console.log('Balances and rewards updated successfully'); // Debug log
   } catch (error) {
     console.error("Failed to update balances:", error);
     throw new Error("Balance update failed");
@@ -427,9 +436,26 @@ async function createAndPublishBundle() {
 
   const bundle = cachedIntentions.map(({ execution }) => execution).flat();
 
+  // Initialize rewards array
+  const rewards = [];
+
+  // Calculate rewards for each transaction
+  for (const execution of bundle) {
+    for (const proof of execution.proof) {
+      if (proof.from) {
+        rewards.push({
+          account: proof.from,
+          token: OYA_TOKEN_ADDRESS,
+          amount: OYA_REWARD_AMOUNT.toString() // Convert BigInt to string
+        });
+      }
+    }
+  }
+
   const bundleObject = {
     bundle: bundle,
-    nonce: nonce // dynamically fetched nonce
+    nonce: nonce, // dynamically fetched nonce
+    rewards: rewards // Add rewards to the bundle object
   };
 
   const bundlerSignature = await wallet.signMessage(JSON.stringify(bundleObject));

@@ -29,7 +29,7 @@ const bundleTrackerContract = new ethers.Contract(contractAddress, contractABI, 
 
 let brian;
 
-const OYA_TOKEN_ADDRESS = "0x000000000000000001"; // Oya token address placeholder
+const OYA_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000001"; // Oya token address placeholder
 const OYA_REWARD_AMOUNT = BigInt(1 * 10 ** 18); // 1 Oya token with 18 decimals
 
 (async () => {

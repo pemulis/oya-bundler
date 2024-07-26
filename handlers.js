@@ -327,7 +327,26 @@ async function handleIntention(intention, signature, from) {
   console.log('txDetails:', txDetails); // Debug log
   const proof = [];
 
-  if (txDetails[0].action === "transfer") {
+  if (txDetails[0].action === "transfer" || txDetails[0].action === "swap") {
+    const tokenAddress = txDetails[0].data.fromToken.address;
+    const amount = txDetails[0].data.fromToken.amount;
+
+    // Fetch the current balance of the sender
+    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${from}/${tokenAddress}`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    let currentBalance = response.data.length > 0 ? BigInt(response.data[0].balance) : BigInt(0);
+    let requiredAmount = BigInt(amount);
+
+    // Check if the sender has enough balance
+    if (currentBalance < requiredAmount) {
+      console.error(`Insufficient balance. Current: ${currentBalance}, Required: ${requiredAmount}`);
+      throw new Error('Insufficient balance');
+    }
+
     proof.push({
       token: txDetails[0].data.fromToken.address,
       chainId: txDetails[0].data.fromToken.chainId,
@@ -336,24 +355,18 @@ async function handleIntention(intention, signature, from) {
       amount: txDetails[0].data.toAmount,
       tokenId: 0 // this field is for NFTs, which are not yet supported
     });
-  } else if (txDetails[0].action === "swap") {
-    proof.push({
-      token: txDetails[0].data.fromToken.address,
-      chainId: txDetails[0].data.fromToken.chainId,
-      from: txDetails[0].data.fromAddress,
-      to: txDetails[0].data.toAddress,
-      amount: txDetails[0].data.toAmount,
-      tokenId: 0 // this field is for NFTs, which are not yet supported
-    });
-    // second proof is the bundler filling the other side of the swap based on market price
-    proof.push({
-      token: txDetails[0].data.toToken.address,
-      chainId: txDetails[0].data.toToken.chainId,
-      from: BUNDLER_ADDRESS,
-      to: txDetails[0].data.fromAddress,
-      amount: txDetails[0].data.toAmount,
-      tokenId: 0 // this field is for NFTs, which are not yet supported
-    });
+
+    if (txDetails[0].action === "swap") {
+      // Second proof is the bundler filling the other side of the swap based on market price
+      proof.push({
+        token: txDetails[0].data.toToken.address,
+        chainId: txDetails[0].data.toToken.chainId,
+        from: BUNDLER_ADDRESS,
+        to: txDetails[0].data.fromAddress,
+        amount: txDetails[0].data.toAmount,
+        tokenId: 0 // this field is for NFTs, which are not yet supported
+      });
+    }
   } else {
     console.error("Unexpected action:", txDetails[0].action);
   }

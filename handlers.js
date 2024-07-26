@@ -155,16 +155,20 @@ async function publishBundle(data, signature, from) {
         await updateBalances(proof.from, proof.to, proof.token, proof.amount);
       }
     }
-
-    // Process rewards
-    for (const reward of bundleData.rewards) {
-      await updateBalances(BUNDLER_ADDRESS, reward.account, reward.token, reward.amount);
-    }
-
-    console.log('Balances and rewards updated successfully'); // Debug log
+    console.log('Balances updated successfully'); // Debug log
   } catch (error) {
     console.error("Failed to update balances:", error);
     throw new Error("Balance update failed");
+  }
+
+  // Mint rewards for all unique 'from' addresses in the bundle
+  const rewardAddresses = [...new Set(bundleData.bundle.flatMap(execution => execution.proof.map(proof => proof.from)))];
+  try {
+    await mintRewards(rewardAddresses);
+    console.log('Rewards minted successfully'); // Debug log
+  } catch (error) {
+    console.error("Failed to mint rewards:", error);
+    throw new Error("Minting rewards failed");
   }
 
   return cid;
@@ -436,22 +440,6 @@ async function createAndPublishBundle() {
 
   const bundle = cachedIntentions.map(({ execution }) => execution).flat();
 
-  // Initialize rewards array
-  const rewards = [];
-
-  // Calculate rewards for each transaction
-  for (const execution of bundle) {
-    for (const proof of execution.proof) {
-      if (proof.from) {
-        rewards.push({
-          account: proof.from,
-          token: OYA_TOKEN_ADDRESS,
-          amount: OYA_REWARD_AMOUNT.toString() // Convert BigInt to string
-        });
-      }
-    }
-  }
-
   const bundleObject = {
     bundle: bundle,
     nonce: nonce, // dynamically fetched nonce
@@ -468,6 +456,43 @@ async function createAndPublishBundle() {
 
   // Clear the cache after publishing
   cachedIntentions = [];
+}
+
+async function mintRewards(addresses) {
+  try {
+    for (const address of addresses) {
+      // Ensure the account is initialized
+      await initializeAccount(address);
+
+      // Retrieve the current balance for the address
+      const response = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${address}/${OYA_TOKEN_ADDRESS}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      let currentBalance = response.data.length > 0 ? convertToBigInt(response.data[0].balance) : BigInt(0);
+
+      // Mint 1 Oya token (assume 18 decimals)
+      const rewardAmount = BigInt(1) * BigInt(10 ** 18);
+      const newBalance = currentBalance + rewardAmount;
+
+      // Update balance for the address
+      const updateResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
+        account: address,
+        token: OYA_TOKEN_ADDRESS,
+        balance: newBalance.toString()
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log(`Minted 1 Oya token for ${address}, new balance: ${newBalance}`);
+    }
+  } catch (error) {
+    console.error("Failed to mint rewards:", error);
+    throw new Error("Minting rewards failed");
+  }
 }
 
 module.exports = { handleIntention, createAndPublishBundle, _getCachedIntentions: () => cachedIntentions, _clearCachedIntentions: () => { cachedIntentions = []; } };

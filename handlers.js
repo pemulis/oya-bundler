@@ -270,6 +270,7 @@ async function initializeAccount(account) {
       console.log(`Initializing account ${account} with test tokens`);
       const initialBalance18 = 10000 * 10 ** 18; // 10,000 tokens with 18 decimals
       const initialBalance6 = 1000000 * 10 ** 6; // 1,000,000 tokens with 6 decimals
+      const initialOyaBalance = 111 * 10 ** 18; // 111 Oya tokens with 18 decimals
 
       const supportedTokens18 = [
         "0x0000000000000000000000000000000000000000", // raw ETH
@@ -278,6 +279,9 @@ async function initializeAccount(account) {
       ];
       const supportedTokens6 = [
         "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" // USDC
+      ];
+      const oyaTokens = [
+        "0x0000000000000000000000000000000000000001"  // OYA
       ];
 
       for (const token of supportedTokens18) {
@@ -297,6 +301,18 @@ async function initializeAccount(account) {
           account: account,
           token: token,
           balance: initialBalance6
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+
+      for (const token of oyaTokens) {
+        await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
+          account: account,
+          token: token,
+          balance: initialOyaBalance
         }, {
           headers: {
             'Content-Type': 'application/json'

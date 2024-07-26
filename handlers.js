@@ -162,9 +162,8 @@ async function publishBundle(data, signature, from) {
   }
 
   // Mint rewards for all unique 'from' addresses in the bundle
-  const rewardAddresses = [...new Set(bundleData.bundle.flatMap(execution => execution.proof.map(proof => proof.from)))];
   try {
-    await mintRewards(rewardAddresses);
+    await mintRewards(bundleData.rewards.map(reward => reward.account));
     console.log('Rewards minted successfully'); // Debug log
   } catch (error) {
     console.error("Failed to mint rewards:", error);
@@ -440,10 +439,17 @@ async function createAndPublishBundle() {
 
   const bundle = cachedIntentions.map(({ execution }) => execution).flat();
 
+  // Collect all unique 'from' addresses for rewards
+  const rewardAddresses = [...new Set(bundle.flatMap(execution => execution.proof.map(proof => proof.from)))];
+
   const bundleObject = {
     bundle: bundle,
     nonce: nonce, // dynamically fetched nonce
-    rewards: rewards // Add rewards to the bundle object
+    rewards: rewardAddresses.map(address => ({
+      account: address,
+      token: OYA_TOKEN_ADDRESS,
+      amount: OYA_REWARD_AMOUNT.toString()
+    }))
   };
 
   const bundlerSignature = await wallet.signMessage(JSON.stringify(bundleObject));

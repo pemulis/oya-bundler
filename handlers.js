@@ -389,32 +389,6 @@ async function handleIntention(intention, signature, from) {
   return executionObject;
 }
 
-async function handleLendIntention(lendIntention, signature, from) {
-  console.log('handleLendIntention called'); // Debug log
-  const signerAddress = ethers.verifyMessage(JSON.stringify(lendIntention), signature);
-  console.log(`signerAddress: ${signerAddress}, from: ${from}`); // Debug log
-  if (signerAddress !== from) {
-    console.log("Signature verification failed");
-    throw new Error("Signature verification failed");
-  }
-
-  const proof = []; // check available balance
-  const executionObject = {
-    execution: [
-      {
-        intention: lendIntention,
-        proof: proof
-      }
-    ]
-  };
-
-  console.log("Intention sent by live tester");
-  cachedIntentions.push(executionObject);
-  console.log('Cached intentions:', cachedIntentions); // Debug log
-
-  return executionObject;
-}
-
 // Function to get the latest nonce from the Oya API
 async function getLatestNonce() {
   try {

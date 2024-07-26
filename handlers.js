@@ -329,7 +329,10 @@ async function handleIntention(intention, signature, from) {
 
   if (txDetails[0].action === "transfer" || txDetails[0].action === "swap") {
     const tokenAddress = txDetails[0].data.fromToken.address;
-    const amount = txDetails[0].data.fromToken.amount;
+    const amount = txDetails[0].data.fromAmount;
+
+    // Convert amount to BigInt
+    const convertedAmount = convertToBigInt(amount);
 
     // Fetch the current balance of the sender
     const response = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${from}/${tokenAddress}`, {
@@ -339,11 +342,10 @@ async function handleIntention(intention, signature, from) {
     });
 
     let currentBalance = response.data.length > 0 ? BigInt(response.data[0].balance) : BigInt(0);
-    let requiredAmount = BigInt(amount);
 
     // Check if the sender has enough balance
-    if (currentBalance < requiredAmount) {
-      console.error(`Insufficient balance. Current: ${currentBalance}, Required: ${requiredAmount}`);
+    if (currentBalance < convertedAmount) {
+      console.error(`Insufficient balance. Current: ${currentBalance}, Required: ${convertedAmount}`);
       throw new Error('Insufficient balance');
     }
 

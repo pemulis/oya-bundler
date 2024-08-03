@@ -377,22 +377,32 @@ async function handleIntention(intention, signature, from) {
       throw new Error('Insufficient balance');
     }
 
-    proof.push({
-      token: txDetails[0].data.fromToken.address,
-      chainId: txDetails[0].data.fromToken.chainId,
-      from: txDetails[0].data.fromAddress,
-      to: txDetails[0].data.toAddress,
-      amount: txDetails[0].data.toAmount,
-      tokenId: 0 // this field is for NFTs, which are not yet supported
-    });
-
     if (txDetails[0].action === "swap") {
+      proof.push({
+        token: txDetails[0].data.fromToken.address,
+        chainId: txDetails[0].data.fromToken.chainId,
+        from: txDetails[0].data.fromAddress,
+        to: BUNDLER_ADDRESS,
+        amount: txDetails[0].data.fromToken.toAmount,
+        tokenId: 0 // this field is for NFTs, which are not yet supported
+      });
+
       // Second proof is the bundler filling the other side of the swap based on market price
       proof.push({
         token: txDetails[0].data.toToken.address,
         chainId: txDetails[0].data.toToken.chainId,
         from: BUNDLER_ADDRESS,
         to: txDetails[0].data.fromAddress,
+        amount: txDetails[0].data.toToken.toAmount,
+        tokenId: 0 // this field is for NFTs, which are not yet supported
+      });
+    } else {
+      // Handle a regular transfer
+      proof.push({
+        token: txDetails[0].data.fromToken.address,
+        chainId: txDetails[0].data.fromToken.chainId,
+        from: txDetails[0].data.fromAddress,
+        to: txDetails[0].data.toAddress,
         amount: txDetails[0].data.toAmount,
         tokenId: 0 // this field is for NFTs, which are not yet supported
       });

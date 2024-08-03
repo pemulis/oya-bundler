@@ -378,34 +378,40 @@ async function handleIntention(intention, signature, from) {
     }
 
     if (txDetails[0].action === "swap") {
-      proof.push({
+      swapInput = {
         token: txDetails[0].data.fromToken.address,
         chainId: txDetails[0].data.fromToken.chainId,
         from: txDetails[0].data.fromAddress,
         to: BUNDLER_ADDRESS,
-        amount: txDetails[0].data.fromToken.toAmount,
+        amount: txDetails[0].data.fromAmount,
         tokenId: 0 // this field is for NFTs, which are not yet supported
-      });
+      };
+      proof.push(swapInput);
+      console.log('swapInput:', swapInput); // Debug log
 
       // Second proof is the bundler filling the other side of the swap based on market price
-      proof.push({
+      swapOutput = {
         token: txDetails[0].data.toToken.address,
         chainId: txDetails[0].data.toToken.chainId,
         from: BUNDLER_ADDRESS,
         to: txDetails[0].data.fromAddress,
-        amount: txDetails[0].data.toToken.toAmount,
+        amount: txDetails[0].data.toAmount,
         tokenId: 0 // this field is for NFTs, which are not yet supported
-      });
+      };
+      proof.push(swapOutput);
+      console.log('swapOutput:', swapOutput); // Debug log;
     } else {
       // Handle a regular transfer
-      proof.push({
+      transfer = {
         token: txDetails[0].data.fromToken.address,
         chainId: txDetails[0].data.fromToken.chainId,
         from: txDetails[0].data.fromAddress,
         to: txDetails[0].data.toAddress,
         amount: txDetails[0].data.toAmount,
         tokenId: 0 // this field is for NFTs, which are not yet supported
-      });
+      };
+      proof.push(transfer);
+      console.log('transfer:', transfer); // Debug log
     }
   } else {
     console.error("Unexpected action:", txDetails[0].action);

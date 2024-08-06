@@ -346,6 +346,8 @@ async function initializeBalancesForAccount(account) {
 let cachedIntentions = [];
 
 async function handleIntention(intention, signature, from) {
+  initializeAccount(from); // Ensure the account is initialized
+  
   console.log('handleIntention called'); // Debug log
   const signerAddress = ethers.verifyMessage(JSON.stringify(intention), signature);
   console.log(`signerAddress: ${signerAddress}, from: ${from}`); // Debug log

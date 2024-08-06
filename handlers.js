@@ -170,6 +170,25 @@ async function publishBundle(data, signature, from) {
     throw new Error("Minting rewards failed");
   }
 
+  // Update the nonce for each account in the bundle
+  try {
+    for (const execution of bundleData.bundle) {
+      const accountNonce = execution.intention.nonce; // Get the nonce from the intention
+      const account = execution.intention.from; // Get the account from the intention
+      const nonceResponse = await axios.post(`${process.env.OYA_API_BASE_URL}/nonce/${account}`, {
+        nonce: accountNonce
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log(`Nonce set for account ${account}: ${JSON.stringify(nonceResponse.data)}`);
+    }
+  } catch (error) {
+    console.error(`Failed to set nonce for accounts in the bundle:`, error);
+    throw new Error("Nonce update failed");
+  }
+
   return cid;
 }
 
@@ -347,7 +366,7 @@ let cachedIntentions = [];
 
 async function handleIntention(intention, signature, from) {
   initializeAccount(from); // Ensure the account is initialized
-  
+
   console.log('handleIntention called'); // Debug log
   const signerAddress = ethers.verifyMessage(JSON.stringify(intention), signature);
   console.log(`signerAddress: ${signerAddress}, from: ${from}`); // Debug log

@@ -188,7 +188,7 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
-    let fromBalance = fromResponse.data.length > 0 ? convertToBigInt(fromResponse.data[0].balance) : '0';
+    let fromBalance = fromResponse.data.length > 0 ? convertToBigInt(fromResponse.data[0].balance) : BigInt(0);
     console.log(`Current balance for from account (${from}): ${fromBalance}`); // Debug log
 
     // Retrieve the current balance for 'to' account
@@ -197,7 +197,7 @@ async function updateBalances(from, to, token, amount) {
         'Content-Type': 'application/json'
       }
     });
-    let toBalance = toResponse.data.length > 0 ? convertToBigInt(toResponse.data[0].balance) : '0';
+    let toBalance = toResponse.data.length > 0 ? convertToBigInt(toResponse.data[0].balance) : BigInt(0);
     console.log(`Current balance for to account (${to}): ${toBalance}`); // Debug log
 
     // Calculate new balances
@@ -268,9 +268,9 @@ async function initializeAccount(account) {
     // If the account is not found, initialize it with test tokens
     if (response.data.length === 0) {
       console.log(`Initializing account ${account} with test tokens`);
-      const initialBalance18 = 10000 * 10 ** 18; // 10,000 tokens with 18 decimals
-      const initialBalance6 = 1000000 * 10 ** 6; // 1,000,000 tokens with 6 decimals
-      const initialOyaBalance = 111 * 10 ** 18; // 111 Oya tokens with 18 decimals
+      const initialBalance18 = (10000n * 10n ** 18n).toString(); // 10,000 tokens with 18 decimals
+      const initialBalance6 = (1000000n * 10n ** 6n).toString(); // 1,000,000 tokens with 6 decimals
+      const initialOyaBalance = (111n * 10n ** 18n).toString(); // 111 Oya tokens with 18 decimals
 
       const supportedTokens18 = [
         "0x0000000000000000000000000000000000000000", // raw ETH

@@ -259,7 +259,9 @@ function convertToBigInt(amount) {
 
 async function initializeAccount(account) {
   try {
-    const response = await axios.get(`${process.env.OYA_API_BASE_URL}/balance/${account}`, {
+    const url = `${process.env.OYA_API_BASE_URL}/balance/${account}`;
+    console.log(`Checking balance for account (${account}): ${url}`);
+    const response = await axios.get(url, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -267,65 +269,77 @@ async function initializeAccount(account) {
 
     // If the account is not found, initialize it with test tokens
     if (response.data.length === 0) {
-      console.log(`Initializing account ${account} with test tokens`);
-      const initialBalance18 = (10000n * 10n ** 18n).toString(); // 10,000 tokens with 18 decimals
-      const initialBalance6 = (1000000n * 10n ** 6n).toString(); // 1,000,000 tokens with 6 decimals
-      const initialOyaBalance = (111n * 10n ** 18n).toString(); // 111 Oya tokens with 18 decimals
-
-      const supportedTokens18 = [
-        "0x0000000000000000000000000000000000000000", // raw ETH
-        "0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828", // UMA
-        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" // WETH
-      ];
-      const supportedTokens6 = [
-        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" // USDC
-      ];
-      const oyaTokens = [
-        "0x0000000000000000000000000000000000000001"  // OYA
-      ];
-
-      for (const token of supportedTokens18) {
-        await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
-          account: account,
-          token: token,
-          balance: initialBalance18
-        }, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-      }
-
-      for (const token of supportedTokens6) {
-        await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
-          account: account,
-          token: token,
-          balance: initialBalance6
-        }, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-      }
-
-      for (const token of oyaTokens) {
-        await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
-          account: account,
-          token: token,
-          balance: initialOyaBalance
-        }, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-      }
-
-      console.log(`Account ${account} initialized with test tokens`);
+      await initializeBalancesForAccount(account);
     }
   } catch (error) {
-    console.error(`Failed to initialize account ${account}:`, error);
-    throw new Error("Account initialization failed");
+    if (error.response && error.response.status === 404) {
+      // If the balance is not found, initialize the account with default balances
+      await initializeBalancesForAccount(account);
+    } else {
+      console.error(`Failed to initialize account ${account}:`, error);
+      throw new Error("Account initialization failed");
+    }
   }
+}
+
+async function initializeBalancesForAccount(account) {
+  console.log(`Initializing account ${account} with test tokens`);
+  const initialBalance18 = (10000n * 10n ** 18n).toString(); // 10,000 tokens with 18 decimals
+  const initialBalance6 = (1000000n * 10n ** 6n).toString(); // 1,000,000 tokens with 6 decimals
+  const initialOyaBalance = (111n * 10n ** 18n).toString(); // 111 Oya tokens with 18 decimals
+
+  const supportedTokens18 = [
+    "0x0000000000000000000000000000000000000000", // raw ETH
+    "0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828", // UMA
+    "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" // WETH
+  ];
+  const supportedTokens6 = [
+    "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" // USDC
+  ];
+  const oyaTokens = [
+    "0x0000000000000000000000000000000000000001"  // OYA
+  ];
+
+  for (const token of supportedTokens18) {
+    console.log(`Initializing ${token} for account ${account} with balance ${initialBalance18}`);
+    await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
+      account: account,
+      token: token,
+      balance: initialBalance18
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  for (const token of supportedTokens6) {
+    console.log(`Initializing ${token} for account ${account} with balance ${initialBalance6}`);
+    await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
+      account: account,
+      token: token,
+      balance: initialBalance6
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  for (const token of oyaTokens) {
+    console.log(`Initializing ${token} for account ${account} with balance ${initialOyaBalance}`);
+    await axios.post(`${process.env.OYA_API_BASE_URL}/balance`, {
+      account: account,
+      token: token,
+      balance: initialOyaBalance
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  console.log(`Account ${account} initialized with test tokens`);
 }
 
 // Cache intentions to be added to a bundle
